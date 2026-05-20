@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>FC 25 - Manager Tortugas Guerreras</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --gold: linear-gradient(135deg, #e2c044 0%, #fbdf7e 45%, #b8860b 100%); --dark: #0f0f0f; --accent: #fbdf7e; --red: #ff4d4d; --yellow: #f1c40f; --grey: #7f8c8d; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--dark); color: white; margin: 0; overflow-x: hidden; }
+        
+        .navbar { background: #1a1a1a; display: flex; align-items: center; padding: 10px 20px; gap: 15px; border-bottom: 2px solid #333; overflow-x: auto; }
+        .team-container { position: relative; display: flex; align-items: center; }
+        .team-item { cursor: pointer; text-align: center; min-width: 90px; padding: 10px; border-radius: 10px; opacity: 0.6; transition: 0.3s; }
+        .team-item.active { opacity: 1; background: #333; border: 1px solid var(--accent); }
+        .team-item img { width: 45px; height: 45px; object-fit: contain; margin-bottom: 5px; border-radius: 5px; }
+        .team-item span { font-size: 11px; font-weight: bold; display: block; }
+        .del-btn { background: var(--red); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; position: absolute; top: -5px; right: -5px; cursor: pointer; display: none; z-index: 100; }
+        .admin-mode .team-container:hover .del-btn { display: block; }
+        
+        .tab-menu { display: flex; justify-content: center; gap: 20px; background: #111; padding: 12px; border-bottom: 1px solid #222; }
+        .tab-btn { background: none; border: 2px solid #444; color: #888; font-family: 'Bebas Neue'; font-size: 22px; padding: 6px 25px; border-radius: 50px; cursor: pointer; transition: 0.3s; letter-spacing: 1px; }
+        .tab-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(251,223,126,0.1); }
+        
+        /* NUEVOS ESTILOS LIBERTADORES */
+        .sub-menu { display: flex; justify-content: center; gap: 15px; margin: 15px 0; }
+        .sub-btn { background: #222; border: 1px solid #444; color: #aaa; padding: 5px 15px; border-radius: 20px; cursor: pointer; font-size: 14px; }
+        .sub-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: bold; }
+        #view-libertadores { display: none; width: 100%; max-width: 1400px; margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
+        .libertadores-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(440px, 1fr)); gap: 20px; }
+        .group-box { background: #111; border: 1px solid #333; border-radius: 10px; padding: 15px; font-size: 13px; position: relative; }
+        .group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .group-box h3 { font-size: 18px; margin: 0; }
+        .matches-list { margin-top: 15px; background: #161616; padding: 8px; border-radius: 6px; max-height: 180px; overflow-y: auto; font-size: 12px; }
+        .match-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #222; }
+        .match-row input { width: 35px; text-align: center; padding: 2px; background: #000; border: 1px solid #444; color: #fff; font-size: 12px; border-radius: 4px; }
+        .row-gold td { background: rgba(241, 196, 15, 0.12) !important; color: #fbdf7e; }
+        .row-grey td { background: rgba(127, 140, 141, 0.12) !important; color: #bdc3c7; }
+        .bracket { display: flex; justify-content: space-between; gap: 30px; margin-top: 20px; background: #161616; padding: 20px; border-radius: 12px; border: 1px solid #333; overflow-x: auto; }
+        .round { display: flex; flex-direction: column; justify-content: space-around; gap: 15px; min-width: 240px; }
+        .round h4 { text-align: center; margin: 0 0 10px 0; font-family: 'Bebas Neue'; font-size: 20px; border-bottom: 1px solid #444; padding-bottom: 5px; }
+        .matchup { background: #111; border: 1px solid #333; padding: 10px; border-radius: 8px; }
+        .matchup-team { display: flex; justify-content: space-between; align-items: center; margin: 6px 0; font-size: 13px; }
+        .matchup-team span { max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold; }
+        .sorteo-box { background: #1e1e1e; border: 2px dashed var(--yellow); padding: 20px; border-radius: 12px; margin-bottom: 25px; display: none; }
+        .admin-mode .sorteo-box { display: block; }
+        .sorteo-inputs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 15px; }
+        select { width: 100%; padding: 8px; background: #000; color: #fff; border: 1px solid #555; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        #live-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .roulette-container { background: #222; border: 4px solid var(--gold); padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 0 50px rgba(251,223,126,0.3); min-width: 420px; }
+        .roulette-title { font-family: 'Bebas Neue'; font-size: 38px; color: var(--accent); margin: 0 0 10px 0; letter-spacing: 2px; }
+        .roulette-group-target { font-family: 'Rajdhani'; font-size: 22px; color: #fff; font-weight: bold; margin-bottom: 25px; background: #333; padding: 6px; border-radius: 8px; }
+        .roulette-window { background: #000; border: 2px solid #444; padding: 20px; border-radius: 10px; min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.1s; }
+        .roulette-window img { width: 110px; height: 110px; object-fit: contain; transition: transform 0.1s; }
+        .roulette-window span { font-family: 'Bebas Neue'; font-size: 28px; color: #fff; margin-top: 10px; display: block; letter-spacing: 1px; }
+        .roulette-window.glow { border-color: var(--yellow); box-shadow: 0 0 30px rgba(241, 196, 15, 0.4); transform: scale(1.05); }
+        .roulette-window.glow span { color: var(--yellow); text-shadow: 0 0 10px var(--yellow); }
+        /* FIN ESTILOS LIBERTADORES */
+
+        .main-content { display: flex; padding: 20px; gap: 20px; align-items: flex-start; }
+        
+        #view-teams { display: flex; width: 100%; gap: 20px; align-items: flex-start; }
+        .gallery { flex: 3; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 30px; }
+        #editor { flex: 1; background: #222; padding: 20px; border-radius: 15px; border: 1px solid #444; position: sticky; top: 20px; height: fit-content; }
+        
+        #view-classification { display: none; width: 100%; max-width: 1000px; margin: 0 auto; }
+        .leaderboard-box { background: #161616; padding: 25px; border-radius: 15px; border: 1px solid #333; width: 100%; box-sizing: border-box; }
+        .clas-table { width: 100%; border-collapse: collapse; font-size: 15px; text-align: left; }
+        .clas-table th { color: #888; font-size: 11px; text-transform: uppercase; padding-bottom: 12px; border-bottom: 2px solid #333; padding-left: 8px; }
+        .clas-table td { padding: 12px 8px; border-bottom: 1px solid #222; }
+        .clas-table tr:hover td { background: #222; }
+        .clas-badge { font-weight: bold; width: 25px; display: inline-block; text-align: center; font-size: 16px; }
+        .clas-logo { width: 28px; height: 28px; object-fit: contain; margin-right: 10px; border-radius: 4px; vertical-align: middle; }
+        
+        .fc-card { width: 230px; height: 330px; background: var(--gold); border-radius: 15px; position: relative; color: #1a1a1a; box-shadow: 0 10px 25px rgba(0,0,0,0.5); transition: 0.3s; cursor: pointer; overflow: hidden; }
+        .fc-card:hover { transform: scale(1.03); }
+        .rating-box { position: absolute; top: 25px; left: 15px; z-index: 10; font-family: 'Rajdhani'; text-align: center; }
+        .rating-val { font-size: 42px; font-weight: 900; line-height: 0.8; }
+        .pos-val { font-size: 14px; font-weight: bold; }
+        .price-tag { position: absolute; top: 25px; right: 15px; font-weight: 800; font-size: 13px; background: #1a1a1a; color: var(--accent); padding: 4px 10px; border-radius: 8px; z-index: 30; box-shadow: 0 4px 8px rgba(0,0,0,0.3); border: 1px solid rgba(251,223,126,0.3); }
+        .match-media-tag { position: absolute; top: 75px; left: 15px; font-family: 'Rajdhani'; font-weight: 800; font-size: 14px; background: rgba(0,0,0,0.85); color: #fff; padding: 2px 6px; border-radius: 5px; z-index: 30; border: 1px solid var(--accent); }
+        
+        .player-img { position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%); width: 240px; height: 240px; object-fit: contain; z-index: 5; mask-image: linear-gradient(to bottom, black 80%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%); }
+        .card-info { position: absolute; bottom: 0; width: 100%; height: 105px; background: rgba(255,255,255,0.95); clip-path: polygon(0 15%, 100% 0, 100% 100%, 0 100%); text-align: center; padding-top: 15px; z-index: 20; }
+        .name { font-family: 'Bebas Neue'; font-size: 26px; margin: 0; }
+        .mini-stats { display: flex; justify-content: center; gap: 8px; font-size: 11px; font-weight: bold; margin-top: 4px; opacity: 0.9; }
+        .discipline { display: flex; justify-content: center; gap: 15px; margin-top: 6px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 4px; }
+        .edit-group { margin-bottom: 12px; }
+        label { font-size: 10px; color: #aaa; text-transform: uppercase; display: block; margin-bottom: 4px; }
+        input { width: 100%; padding: 8px; background: #000; color: white; border: 1px solid #555; border-radius: 5px; box-sizing: border-box; }
+        input:disabled { background: #111; color: var(--accent); border-color: #333; font-weight: bold; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #2a2a2a; padding: 10px; border-radius: 8px; margin-top: 10px; }
+        .btn { width: 100%; padding: 10px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .admin-only { display: none; }
+        .admin-mode .admin-only { display: block; }
+        #add-team-btn { display: none; }
+        .admin-mode #add-team-btn { display: block; }
+    </style>
+</head>
+<body>
+
+<div id="live-overlay">
+    <div class="roulette-container">
+        <div class="roulette-title">SORTEO COPA LIBERTADORES</div>
+        <div class="roulette-group-target" id="roulette-target-box">Asignando a: Grupo A - Plaza 1</div>
+        <div class="roulette-window" id="roulette-window-box">
+            <img src="https://via.placeholder.com/110" id="roulette-img" alt="Escudo">
+            <div id="roulette-text">BUSCANDO...</div>
+        </div>
+        <p style="color: #666; font-size: 11px; margin-top: 20px; text-transform: uppercase; letter-spacing: 1px;">Sincronizado en tiempo real</p>
+    </div>
+</div>
+
+<div class="tab-menu">
+    <button class="tab-btn active" id="btn-tab-teams" onclick="switchTab('teams')">Equipos y Jugadores</button>
+    <button class="tab-btn" id="btn-tab-clas" onclick="switchTab('clas')">Clasificación General</button>
+    <button class="tab-btn" id="btn-tab-liber" onclick="switchTab('liber')">Libertadores</button>
+</div>
+
+<div class="navbar" id="nav">
+    <button id="add-team-btn" onclick="addTeam()" style="background:var(--accent); border:none; border-radius:50%; width:35px; height:35px; cursor:pointer; font-weight:bold;">+</button>
+</div>
+
+<div class="main-content">
+    
+    <div id="view-teams">
+        <div class="gallery" id="grid"></div>
+        
+        <div id="editor">
+            <div id="login-box">
+                <h3 style="margin:0 0 10px 0; color:var(--accent)">Acceso Administrador</h3>
+                <input type="password" id="pass-input" placeholder="Introduce la contraseña...">
+                <button class="btn" style="background:var(--accent); color:#000" onclick="checkPass()">Entrar</button>
+            </div>
+            <div id="admin-panel" class="admin-only">
+                <h3 id="ed-title" style="margin:0 0 15px 0; color:var(--accent)">Gestión Liga</h3>
+                <button class="btn" style="background:var(--accent); color:#000" onclick="addPlayer()">+ Añadir Nuevo Jugador</button>
+                
+                <div id="form-player" style="display:none; margin-top:20px; border-top:1px solid #444; padding-top:15px;">
+                    <div class="edit-group"><label>Nombre</label><input type="text" id="in-name"></div>
+                    <div class="edit-group"><label>Valor de Mercado</label><input type="text" id="in-val"></div>
+                    <div class="edit-group"><label>Foto Jugador (PC)</label><input type="file" id="in-file" accept="image/*" style="font-size:10px"></div>
+                    <div class="stats-grid">
+                        <div><label>GRL (Carta)</label><input type="number" id="in-rat"></div>
+                        <div><label>Posición</label><input type="text" id="in-pos"></div>
+                        <div><label>Partidos</label><input type="number" id="in-pj"></div>
+                        <div id="box-goles"><label>Goles</label><input type="number" id="in-g"></div>
+                        <div id="box-asist"><label>Asistencias</label><input type="number" id="in-a"></div>
+                        <div><label style="color:var(--yellow)">Amarillas 🟨</label><input type="number" id="in-ama"></div>
+                        <div><label style="color:var(--red)">Rojas 🟥</label><input type="number" id="in-roj"></div>
+                        <div><label style="color:var(--accent)">Nota Media ⭐</label><input type="text" id="in-media" placeholder="Ej: 7.8"></div>
+                    </div>
+                    <button class="btn" style="background:var(--red); color:white" onclick="delPlayer()">Eliminar Jugador</button>
+                </div>
+                
+                <div id="form-team" style="display:none; margin-top:15px;">
+                    <div class="edit-group"><label>Nombre Equipo</label><input type="text" id="in-tname"></div>
+                    <div class="edit-group"><label>Escudo Equipo (PC)</label><input type="file" id="in-tfile" accept="image/*"></div>
+                    
+                    <div class="stats-grid" style="background:#111;">
+                        <div><label>PJ</label><input type="number" id="in-tpj"></div>
+                        <div><label>Ganados</label><input type="number" id="in-tpg"></div>
+                        <div><label>Empatados</label><input type="number" id="in-tpe"></div>
+                        <div><label>Perdidos</label><input type="number" id="in-tpp"></div>
+                        <div><label style="color:#2ecc71">Goles Favor (GF)</label><input type="number" id="in-tgf"></div>
+                        <div><label style="color:#e74c3c">Goles Contra (GC)</label><input type="number" id="in-tgc"></div>
+                        <div style="grid-column: span 2"><label style="color:var(--accent)">Puntos (Automático 3xG + 1xE)</label><input type="number" id="in-tpts" disabled></div>
+                    </div>
+                </div>
+                <button class="btn" style="background:#444; color:white; margin-top:20px;" onclick="logout()">Cerrar Sesión</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-classification">
+        <div class="leaderboard-box">
+            <h3 style="margin:0 0 20px 0; color:var(--accent); font-family:'Bebas Neue'; font-size:32px; letter-spacing:1px; text-align:center;">Tabla de Clasificación Oficial</h3>
+            <table class="clas-table">
+                <thead>
+                    <tr>
+                        <th>Pos</th>
+                        <th>Equipo</th>
+                        <th>PJ</th>
+                        <th>PG</th>
+                        <th>PE</th>
+                        <th>PP</th>
+                        <th>GF</th>
+                        <th>GC</th>
+                        <th>DG</th>
+                        <th style="color:var(--accent)">Pts</th>
+                    </tr>
+                </thead>
+                <tbody id="clas-body">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="view-libertadores">
+        <div class="sub-menu">
+            <button class="sub-btn active" id="sub-btn-grupos" onclick="switchSubLibertadores('grupos')">Fase de Grupos (3 Equipos)</button>
+            <button class="sub-btn" id="sub-btn-playoffs" onclick="switchSubLibertadores('playoffs')">Eliminatorias Libertadores</button>
+            <button class="sub-btn" id="sub-btn-perdedores" onclick="switchSubLibertadores('perdedores')">Copa Perdedores (3ºs)</button>
+        </div>
+
+        <div id="admin-liber-controls" class="admin-only" style="margin-bottom: 20px; text-align: center; display: flex; justify-content: center; gap: 10px;">
+            <button class="btn" style="background:var(--accent); color:#000; width:auto; padding:8px 16px; font-size:13px;" onclick="addLibertadoresGroup()">+ Crear Nuevo Grupo</button>
+            <button class="btn" style="background:var(--red); color:#fff; width:auto; padding:8px 16px; font-size:13px;" onclick="clearLibertadoresData()">🗑️ Eliminar Todos los Grupos</button>
+        </div>
+
+        <div class="sorteo-box" id="sorteo-visual-panel">
+            <h3 style="color:var(--yellow); font-family:'Bebas Neue'; font-size:24px; margin:0;">🔮 Bombo de Sorteo con Selección de Equipos</h3>
+            <p style="font-size:12px; color:#aaa; margin:5px 0 15px 0;">Elige los clasificados. Al pulsar el botón, arrancará la ruleta interactiva de escudos.</p>
+            <div class="sorteo-inputs-grid" id="sorteo-inputs-container"></div>
+            <button class="btn" style="background:var(--yellow); color:#000; font-weight:bold; width:auto; padding:10px 30px; margin-top:15px;" onclick="startTelevisedSorteo()">🎬 Iniciar Sorteo Dinámico con Escudos</button>
+        </div>
+
+        <div id="liber-grupos-section">
+            <div class="libertadores-grid" id="liber-groups-container"></div>
+        </div>
+
+        <div id="liber-playoffs-section" style="display:none;">
+            <div class="bracket">
+                <div class="round">
+                    <h4 style="color:var(--accent)">Cuartos (Ida/Vuelta)</h4>
+                    <div class="matchup"><div class="matchup-team"><span id="c1-local">Esperando...</span></div><div class="matchup-team"><span id="c1-vis">Esperando...</span></div></div>
+                    <div class="matchup"><div class="matchup-team"><span id="c2-local">Esperando...</span></div><div class="matchup-team"><span id="c2-vis">Esperando...</span></div></div>
+                    <div class="matchup"><div class="matchup-team"><span id="c3-local">Esperando...</span></div><div class="matchup-team"><span id="c3-vis">Esperando...</span></div></div>
+                    <div class="matchup"><div class="matchup-team"><span id="c4-local">Esperando...</span></div><div class="matchup-team"><span id="c4-vis">Esperando...</span></div></div>
+                </div>
+                <div class="round"><h4 style="color:var(--yellow)">Semifinales</h4><div class="matchup"><span>Ganador C1</span></div><div class="matchup"><span>Ganador C2</span></div></div>
+                <div class="round"><h4 style="color:var(--gold)">Gran Final</h4><div class="matchup"><span>Finalista 1</span></div></div>
+            </div>
+        </div>
+
+        <div id="liber-perdedores-section" style="display:none;">
+            <div class="bracket">
+                <div class="round">
+                    <h4 style="color:var(--grey)">Semifinales Perdedores</h4>
+                    <div class="matchup"><span id="p1-local">3º Grupo A</span></div>
+                    <div class="matchup"><span id="p1-vis">3º Grupo C</span></div>
+                </div>
+                <div class="round"><h4 style="color:#e74c3c">Final</h4><div class="matchup"><span>Ganador M1</span></div></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const supabaseUrl = 'https://tcelmbxtsolpijmccuah.supabase.co';
+    const anonKey = 'sb_publishable_vkQ38JVUyYSLoeiOKw6H6w_e4eTatx9';
+    const adminKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjZWxtYnh0c29scGlqbWNjdWFoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MT74OTczMjEyLCJleHAiOjIwOTQ1NDkyMTJ9.AQOipGujTRbRPXEkn6Rm5SI6kIp71xAID6hxOXV55h0';
+
+    let _supabase = supabase.createClient(supabaseUrl, anonKey);
+    // Añadida la propiedad liberGroups al state original para el soporte de la nueva pestaña
+    let state = { teams: [], players: [], liberGroups: [], currT: null, currP: null, isAdmin: false, activeTab: 'teams', activeSubLiber: 'grupos' };
+
+    function switchTab(tab) {
+        state.activeTab = tab;
+        document.getElementById('btn-tab-teams').classList.toggle('active', tab === 'teams');
+        document.getElementById('btn-tab-clas').classList.toggle('active', tab === 'clas');
+        document.getElementById('btn-tab-liber').classList.toggle('active', tab === 'liber');
+        
+        document.getElementById('view-teams').style.display = tab === 'teams' ? 'flex' : 'none';
+        document.getElementById('nav').style.display = tab === 'teams' ? 'flex' : 'none';
+        document.getElementById('view-classification').style.display = tab === 'clas' ? 'block' : 'none';
+        document.getElementById('view-libertadores').style.display = tab === 'liber' ? 'block' : 'none';
+        render();
+    }
+
+    function switchSubLibertadores(sub) {
+        state.activeSubLiber = sub;
+        document.getElementById('sub-btn-grupos').classList.toggle('active', sub === 'grupos');
+        document.getElementById('sub-btn-playoffs').classList.toggle('active', sub === 'playoffs');
+        document.getElementById('sub-btn-perdedores').classList.toggle('active', sub === 'perdedores');
+        document.getElementById('liber-grupos-section').style.display = sub === 'grupos' ? 'block' : 'none';
+        document.getElementById('liber-playoffs-section').style.display = sub === 'playoffs' ? 'block' : 'none';
+        document.getElementById('liber-perdedores-section').style.display = sub === 'perdedores' ? 'block' : 'none';
+    }
+
+    function checkPass() {
+        const pass = document.getElementById('pass-input').value;
+        if (pass === 'admin') {
+            state.isAdmin = true;
+            _supabase = supabase.createClient(supabaseUrl, adminKey);
+            document.body.classList.add('admin-mode');
+            document.getElementById('login-box').style.display = 'none';
+            alert("¡Sesión iniciada como Administrador!");
+            render();
+        } else { alert("Contraseña incorrecta"); }
+    }
+
+    function logout() {
+        state.isAdmin = false;
+        _supabase = supabase.createClient(supabaseUrl, anonKey);
+        document.body.classList.remove('admin-mode');
+        document.getElementById('login-box').style.display = 'block';
+        document.getElementById('pass-input').value = '';
+        render();
+    }
+
+    async function loadData() {
+        try {
+            let { data: tData } = await _supabase.from('teams').select('*');
+            let { data: pData } = await _supabase.from('players').select('*');
+            let { data: lData } = await _supabase.from('liber_groups').select('*');
+            state.teams = tData || [];
+            state.players = pData || [];
+            state.liberGroups = lData || [];
+            state.liberGroups.sort((a,b) => a.name.localeCompare(b.name));
+        } catch(e) {
+            state.teams = [];
+            state.players = [];
+            state.liberGroups = [];
+        }
+        if(!state.currT && state.teams.length > 0) state.currT = state.teams[0].id;
+        render();
+        if(state.currT) selectT(state.currT);
+
+        // Polling en tiempo real para usuarios espectadores
+        setInterval(async () => {
+            if(!state.isAdmin) {
+                let { data: lData } = await _supabase.from('liber_groups').select('*');
+                let { data: tData } = await _supabase.from('teams').select('*');
+                let { data: pData } = await _supabase.from('players').select('*');
+                if(lData) state.liberGroups = lData.sort((a,b) => a.name.localeCompare(b.name));
+                if(tData) state.teams = tData;
+                if(pData) state.players = pData;
+                updatePlayoffsDinamicos();
+            }
+        }, 5000);
+    }
+
+    async function syncTeam(t) { if(state.isAdmin) await _supabase.from('teams').upsert(t); }
+    async function syncPlayer(p) { if(state.isAdmin) await _supabase.from('players').upsert(p); }
+    async function syncLiberGroup(g) { if(state.isAdmin) await _supabase.from('liber_groups').upsert(g); }
+
+    document.getElementById('in-file').onchange = e => {
+        const r = new FileReader();
+        r.onload = async ev => {
+            if(state.currP) {
+                let p = state.players.find(x=>x.id==state.currP);
+                p.img = ev.target.result;
+                await syncPlayer(p);
+                render();
+            }
+        };
+        r.readAsDataURL(e.target.files[0]);
+    };
+
+    document.getElementById('in-tfile').onchange = e => {
+        const r = new FileReader();
+        r.onload = async ev => {
+            let t = state.teams.find(x=>x.id==state.currT);
+            t.logo = ev.target.result;
+            await syncTeam(t);
+            render();
+        };
+        r.readAsDataURL(e.target.files[0]);
+    };
+
+    async function addTeam() {
+        let n = prompt("Nombre del Equipo:");
+        if(n) {
+            let t = { id: Date.now(), name: n, logo: '', pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, pts: 0 };
+            
+            if(state.isAdmin) {
+                let { data, error } = await _supabase.from('teams').upsert(t).select();
+                if(data && data[0]) {
+                    state.teams.push(data[0]);
+                    state.currT = data[0].id;
+                } else {
+                    state.teams.push(t);
+                    state.currT = t.id;
+                }
+            } else {
+                state.teams.push(t);
+                state.currT = t.id;
+            }
+            render();
+            selectT(state.currT);
+        }
+    }
+
+    async function addPlayer() {
+        let p = { id: Date.now(), teamId: state.currT, name: 'NUEVO', rat: 85, pos: 'DC', val: '0', pj: 0, g: 0, a: 0, ama: 0, roj: 0, img: '', media: '-' };
+        if(state.isAdmin) {
+            let { data } = await _supabase.from('players').upsert(p).select();
+            if(data && data[0]) p = data[0];
+        }
+        state.players.push(p);
+        render();
+        selectP(p.id);
+    }
+
+    function selectP(id) {
+        state.currP = id;
+        let p = state.players.find(x=>x.id==id);
+        if(!state.isAdmin) return;
+        document.getElementById('ed-title').innerText = "Editando Jugador";
+        document.getElementById('form-player').style.display = 'block';
+        document.getElementById('form-team').style.display = 'none';
+        ['name','val','rat','pos','pj','g','a','ama','roj','media'].forEach(f => {
+            document.getElementById('in-'+f).value = p[f] !== undefined ? p[f] : '';
+        });
+        updateLabels(p.pos);
+        render();
+    }
+
+    function selectT(id) {
+        state.currT = id; state.currP = null;
+        if(!state.isAdmin) { render(); return; }
+        document.getElementById('ed-title').innerText = "Ajustes Equipo";
+        document.getElementById('form-team').style.display = 'block';
+        document.getElementById('form-player').style.display = 'none';
+        let t = state.teams.find(x=>x.id==id);
+        if(!t) return;
+        document.getElementById('in-tname').value = t.name;
+        document.getElementById('in-tpj').value = t.pj || 0;
+        document.getElementById('in-tpg').value = t.pg || 0;
+        document.getElementById('in-tpe').value = t.pe || 0;
+        document.getElementById('in-tpp').value = t.pp || 0;
+        document.getElementById('in-tgf').value = t.gf || 0;
+        document.getElementById('in-tgc').value = t.gc || 0;
+        
+        let calcPts = (Number(t.pg) || 0) * 3 + (Number(t.pe) || 0) * 1;
+        document.getElementById('in-tpts').value = calcPts;
+        render();
+    }
+
+    function updateLabels(pos) {
+        const isPor = pos.toUpperCase() === 'POR';
+        document.querySelector('#box-goles label').innerText = isPor ? 'P. Imbatidas' : 'Goles';
+        document.getElementById('box-asist').style.display = isPor ? 'none' : 'block';
+    }
+
+    async function delPlayer() {
+        if(confirm("¿Borrar jugador?")) {
+            if(state.isAdmin) await _supabase.from('players').delete().eq('id', state.currP);
+            state.players = state.players.filter(x=>x.id!=state.currP);
+            state.currP = null;
+            document.getElementById('form-player').style.display = 'none';
+            render();
+        }
+    }
+
+    /* FUNCIONES DE LÓGICA EXCLUSIVA PARA LA LIBERTADORES */
+    async function addLibertadoresGroup() {
+        let alphabet = 'ABCDEFGH';
+        let letra = alphabet[state.liberGroups.length] || 'X';
+        let nuevoGrupo = {
+            id: Date.now(),
+            name: 'Grupo ' + letra,
+            teams_data: [
+                { name: 'Esperando...', pj:0, pg:0, pe:0, pp:0, gf:0, gc:0, dg:0, pts:0 },
+                { name: 'Esperando...', pj:0, pg:0, pe:0, pp:0, gf:0, gc:0, dg:0, pts:0 },
+                { name: 'Esperando...', pj:0, pg:0, pe:0, pp:0, gf:0, gc:0, dg:0, pts:0 }
+            ],
+            matches: []
+        };
+        if(state.isAdmin) await _supabase.from('liber_groups').insert(nuevoGrupo);
+        state.liberGroups.push(nuevoGrupo);
+        state.liberGroups.sort((a,b) => a.name.localeCompare(b.name));
+        render();
+    }
+
+    function renderSorteoInputs() {
+        const container = document.getElementById('sorteo-inputs-container');
+        if(!container) return;
+        container.innerHTML = '';
+        let totalInputs = state.liberGroups.length * 3;
+        
+        let opcionesHtml = '<option value="">-- Selecciona un equipo --</option>';
+        state.teams.forEach(t => {
+            opcionesHtml += `<option value="${t.name}">${t.name}</option>`;
+        });
+
+        for(let i = 0; i < totalInputs; i++) {
+            container.innerHTML += `<div>
+                <label>Plaza Sorteo #${i+1}</label>
+                <select class="sorteo-team-select">${opcionesHtml}</select>
+            </div>`;
+        }
+    }
+
+    async function startTelevisedSorteo() {
+        if(!state.isAdmin) return;
+        let selects = document.querySelectorAll('.sorteo-team-select');
+        let poolEquipos = [];
+        selects.forEach(sel => { if(sel.value !== '') poolEquipos.push(sel.value); });
+
+        let totalNecesario = state.liberGroups.length * 3;
+        if(poolEquipos.length !== totalNecesario) {
+            alert(`Por favor, selecciona los ${totalNecesario} equipos necesarios.`);
+            return;
+        }
+
+        let listaMezclada = poolEquipos.sort(() => Math.random() - 0.5);
+        const overlay = document.getElementById('live-overlay');
+        const txtRuleta = document.getElementById('roulette-text');
+        const imgRuleta = document.getElementById('roulette-img');
+        const targetBox = document.getElementById('roulette-target-box');
+        const winBox = document.getElementById('roulette-window-box');
+        overlay.style.display = 'flex';
+
+        for (let i = 0; i < state.liberGroups.length; i++) {
+            let grupo = state.liberGroups[i];
+            grupo.teams_data = [];
+
+            for (let j = 0; j < 3; j++) {
+                targetBox.innerText = `Asignando a: ${grupo.name} - Plaza ${j+1}`;
+                winBox.classList.remove('glow');
+                
+                let promesasRuleta = new Promise((resolve) => {
+                    let giros = 0;
+                    let intervaloRuleta = setInterval(() => {
+                        let equipoAleatorio = state.teams[Math.floor(Math.random() * state.teams.length)];
+                        if(equipoAleatorio) {
+                            imgRuleta.src = equipoAleatorio.logo || 'https://via.placeholder.com/110';
+                            txtRuleta.innerText = equipoAleatorio.name;
+                        }
+                        giros++;
+                        if(giros > 30) { clearInterval(intervaloRuleta); resolve(); }
+                    }, 55);
+                });
+
+                await promesasRuleta;
+
+                let equipoElegidoReal = listaMezclada.pop();
+                let objetoEquipoReal = state.teams.find(x => x.name === equipoElegidoReal);
+                
+                imgRuleta.src = objetoEquipoReal?.logo || 'https://via.placeholder.com/110';
+                txtRuleta.innerText = equipoElegidoReal;
+                winBox.classList.add('glow');
+                
+                grupo.teams_data.push({ name: equipoElegidoReal, pj:0, pg:0, pe:0, pp:0, gf:0, gc:0, dg:0, pts:0 });
+                await new Promise(r => setTimeout(r, 1500));
+            }
+
+            let n = grupo.teams_data;
+            grupo.matches = [
+                { local: n[0].name, visitante: n[1].name, golesL: '', golesV: '' },
+                { local: n[1].name, visitante: n[2].name, golesL: '', golesV: '' },
+                { local: n[2].name, visitante: n[0].name, golesL: '', golesV: '' },
+                { local: n[1].name, visitante: n[0].name, golesL: '', golesV: '' },
+                { local: n[2].name, visitante: n[1].name, golesL: '', golesV: '' },
+                { local: n[0].name, visitante: n[2].name, golesL: '', golesV: '' }
+            ];
+            await syncLiberGroup(grupo);
+        }
+
+        overlay.style.display = 'none';
+        alert("¡Sorteo guardado con éxito!");
+        render();
+    }
+
+    async function clearLibertadoresData() {
+        if(confirm("¿Seguro que quieres eliminar todos los grupos de la Libertadores?")) {
+            if(state.isAdmin) {
+                await _supabase.from('liber_groups').delete().neq('id', 0);
+                state.liberGroups = [];
+                render();
+            }
+        }
+    }
+
+    async function deleteSingleGroup(id) {
+        if(confirm("¿Borrar este grupo?")) {
+            if(state.isAdmin) {
+                await _supabase.from('liber_groups').delete().eq('id', id);
+                state.liberGroups = state.liberGroups.filter(x => x.id !== id);
+                render();
+            }
+        }
+    }
+
+    async function updateLiberMatch(grupoId, matchIndex, valL, valV) {
+        let g = state.liberGroups.find(x => x.id === grupoId);
+        if (!g) return;
+
+        g.matches[matchIndex].golesL = valL !== '' ? Number(valL) : '';
+        g.matches[matchIndex].golesV = valV !== '' ? Number(valV) : '';
+
+        g.teams_data.forEach(t => { t.pj=0; t.pg=0; t.pe=0; t.pp=0; t.gf=0; t.gc=0; t.dg=0; t.pts=0; });
+        
+        g.matches.forEach(m => {
+            if(m.golesL !== '' && m.golesV !== '') {
+                let loc = g.teams_data.find(x => x.name === m.local);
+                let vis = g.teams_data.find(x => x.name === m.visitante);
+                if(loc && vis) {
+                    loc.pj++; vis.pj++; 
+                    loc.gf += m.golesL; loc.gc += m.golesV; 
+                    vis.gf += m.golesV; vis.gc += m.golesL;
+                    if(m.golesL > m.golesV) { loc.pg++; vis.pp++; loc.pts += 3; }
+                    else if(m.golesL < m.golesV) { vis.pg++; loc.pp++; vis.pts += 3; }
+                    else { loc.pe++; vis.pe++; loc.pts += 1; vis.pts += 1; }
+                }
+            }
+        });
+
+        g.teams_data.forEach(t => { t.dg = t.gf - t.gc; });
+        g.teams_data.sort((a,b) => b.pts !== a.pts ? b.pts - a.pts : b.dg - a.dg);
+        
+        if(state.isAdmin) {
+            await syncLiberGroup(g);
+        }
+        render();
+    }
+
+    function updatePlayoffsDinamicos() {
+        let gA = state.liberGroups[0]?.teams_data || [];
+        let gB = state.liberGroups[1]?.teams_data || [];
+        let gC = state.liberGroups[2]?.teams_data || [];
+        let gD = state.liberGroups[3]?.teams_data || [];
+
+        if(document.getElementById('c1-local')) {
+            document.getElementById('c1-local').innerText = gA[0]?.name || "1º Grupo A";
+            document.getElementById('c1-vis').innerText = gB[1]?.name || "2º Grupo B";
+            document.getElementById('c2-local').innerText = gC[0]?.name || "1º Grupo C";
+            document.getElementById('c2-vis').innerText = gD[1]?.name || "2º Grupo D";
+            document.getElementById('c3-local').innerText = gB[0]?.name || "1º Grupo B";
+            document.getElementById('c3-vis').innerText = gA[1]?.name || "2º Grupo A";
+            document.getElementById('c4-local').innerText = gD[0]?.name || "1º Grupo D";
+            document.getElementById('c4-vis').innerText = gC[1]?.name || "2º Grupo C";
+            
+            if(document.getElementById('p1-local')) {
+                document.getElementById('p1-local').innerText = gA[2]?.name || "3º Grupo A";
+                document.getElementById('p1-vis').innerText = gC[2]?.name || "3º Grupo C";
+            }
+        }
+    }
+    /* FIN DE FUNCIONES DE LA LIBERTADORES */
+
+    function render() {
+        const nav = document.getElementById('nav');
+        if (state.activeTab === 'teams') {
+            const btn = document.getElementById('add-team-btn');
+            nav.innerHTML = ''; nav.appendChild(btn);
+            state.teams.forEach(t => {
+                nav.innerHTML += `<div class="team-container">
+                    <button class="del-btn" onclick="event.stopPropagation(); if(confirm('¿Borrar equipo?')) { _supabase.from('teams').delete().eq('id', ${t.id}).then(() => { state.teams=state.teams.filter(x=>x.id!=${t.id}); render(); }); }">×</button>
+                    <div class="team-item ${t.id==state.currT?'active':''}" onclick="selectT(${t.id})">
+                        <img src="${t.logo || 'https://via.placeholder.com/45'}"><span>${t.name}</span>
+                    </div></div>`;
+            });
+        }
+
+        const clasBody = document.getElementById('clas-body');
+        clasBody.innerHTML = '';
+        
+        let sortedTeams = [...state.teams].sort((a,b) => {
+            let ptsA = (Number(a.pg) || 0) * 3 + (Number(a.pe) || 0) * 1;
+            let ptsB = (Number(b.pg) || 0) * 3 + (Number(b.pe) || 0) * 1;
+            if (ptsB !== ptsA) return ptsB - ptsA;
+            let dgA = (Number(a.gf) || 0) - (Number(a.gc) || 0);
+            let dgB = (Number(b.gf) || 0) - (Number(b.gc) || 0);
+            return dgB - dgA;
+        });
+        
+        sortedTeams.forEach((t, index) => {
+            let gf = Number(t.gf) || 0;
+            let gc = Number(t.gc) || 0;
+            let dg = gf - gc;
+            let dgText = dg > 0 ? `+${dg}` : dg;
+            let ptsCalculados = (Number(t.pg) || 0) * 3 + (Number(t.pe) || 0) * 1;
+
+            clasBody.innerHTML += `
+                <tr>
+                    <td><span class="clas-badge">${index + 1}</span></td>
+                    <td><img class="clas-logo" src="${t.logo || 'https://via.placeholder.com/45'}"><strong>${t.name}</strong></td>
+                    <td>${t.pj || 0}</td>
+                    <td>${t.pg || 0}</td>
+                    <td>${t.pe || 0}</td>
+                    <td>${t.pp || 0}</td>
+                    <td>${gf}</td>
+                    <td>${gc}</td>
+                    <td style="font-weight:bold; color:${dg > 0 ? '#2ecc71' : dg < 0 ? '#e74c3c' : '#aaa'}">${dgText}</td>
+                    <td style="color:var(--accent); font-weight:bold; font-size:16px;">${ptsCalculados}</td>
+                </tr>
+            `;
+        });
+
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+        // TU FILTRADO ORIGINAL EXACTO: p.teamId == state.currT
+        state.players.filter(p=>p.teamId==state.currT).forEach(p => {
+            const isPor = p.pos.toUpperCase() === 'POR';
+            grid.innerHTML += `
+                <div class="fc-card" onclick="selectP(${p.id})">
+                    <div class="rating-box"><div class="rating-val">${p.rat}</div><div class="pos-val">${p.pos}</div></div>
+                    <div class="price-tag">${p.val}</div>
+                    <div class="match-media-tag">⭐ ${p.media || '-'}</div>
+                    
+                    <img src="${p.img}" class="player-img" onerror="this.style.opacity='0'" onload="this.style.opacity='1'">
+                    <div class="card-info">
+                        <p class="name">${p.name}</p>
+                        <div class="mini-stats">
+                            <span>PJ: ${p.pj}</span> | <span>${isPor?'PI':'G'}: ${p.g}</span> ${!isPor ? `| <span>A: ${p.a}</span>` : ''}
+                        </div>
+                        <div class="discipline">
+                            <span style="color:var(--yellow)">🟨 ${p.ama}</span>
+                            <span style="color:var(--red)">🟥 ${p.roj}</span>
+                        </div>
+                    </div>
+                </div>`;
+        });
+
+        // RENDER DINÁMICO EXCLUSIVO DE LA NUEVA VISTA DE LIBERTADORES
+        const liberGroupsContainer = document.getElementById('liber-groups-container');
+        if (liberGroupsContainer) {
+            liberGroupsContainer.innerHTML = '';
+            state.liberGroups.forEach(g => {
+                let tablaHtml = `<thead>
+                    <tr><th>Pos</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th style="color:var(--accent)">Pts</th></tr>
+                </thead><tbody>`;
+                g.teams_data.forEach((t, idx) => {
+                    let claseColor = idx < 2 ? 'row-gold' : 'row-grey';
+                    tablaHtml += `<tr class="${claseColor}">
+                        <td><strong>${idx+1}º</strong></td>
+                        <td style="font-weight:bold;">${t.name}</td>
+                        <td>${t.pj || 0}</td><td>${t.pg || 0}</td><td>${t.pe || 0}</td><td>${t.pp || 0}</td><td>${t.gf || 0}</td><td>${t.gc || 0}</td><td>${t.dg >= 0 ? '+' + t.dg : t.dg}</td>
+                        <td style="font-weight:bold; color:var(--accent)">${t.pts || 0}</td>
+                    </tr>`;
+                });
+                tablaHtml += '</tbody>';
+
+                let partidosHtml = '';
+                g.matches.forEach((m, mIdx) => {
+                    partidosHtml += `<div class="match-row">
+                        <span style="width:38%; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:600;">${m.local}</span>
+                        <div style="display:flex; gap:5px; align-items:center;">
+                            <input type="number" value="${m.golesL !== undefined ? m.golesL : ''}" ${!state.isAdmin?'disabled':''} onchange="updateLiberMatch(${g.id}, ${mIdx}, this.value, ${m.golesV})">
+                            <span style="color:#555; font-weight:bold;">-</span>
+                            <input type="number" value="${m.golesV !== undefined ? m.golesV : ''}" ${!state.isAdmin?'disabled':''} onchange="updateLiberMatch(${g.id}, ${mIdx}, ${m.golesL}, this.value)">
+                        </div>
+                        <span style="width:38%; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:600;">${m.visitante}</span>
+                    </div>`;
+                });
+
+                let delBtn = state.isAdmin ? `<button onclick="deleteSingleGroup(${g.id})" style="background:var(--red); border:none; border-radius:4px; color:#fff; cursor:pointer; font-weight:bold; padding:2px 6px;">×</button>` : '';
+                liberGroupsContainer.innerHTML += `<div class="group-box">
+                    <div class="group-header"><h3>${g.name}</h3>${delBtn}</div>
+                    <table class="clas-table">${tablaHtml}</table>
+                    <div class="matches-list">${partidosHtml}</div>
+                </div>`;
+            });
+        }
+
+        if (state.isAdmin && state.activeTab === 'liber') renderSorteoInputs();
+        updatePlayoffsDinamicos();
+    }
+
+    ['in-name','in-val','in-rat','in-pos','in-pj','in-g','in-a','in-ama','in-roj','in-media'].forEach(id => {
+        document.getElementById(id).oninput = async e => {
+            if(!state.currP || !state.isAdmin) return;
+            let p = state.players.find(x=>x.id==state.currP);
+            p[id.replace('in-', '')] = e.target.value;
+            if(id === 'in-pos') updateLabels(e.target.value);
+            await syncPlayer(p);
+            render();
+        };
+    });
+
+    ['in-tname', 'in-tpj', 'in-tpg', 'in-tpe', 'in-tpp', 'in-tgf', 'in-tgc'].forEach(id => {
+        document.getElementById(id).oninput = async e => {
+            if(!state.isAdmin || !state.currT) return;
+            let t = state.teams.find(x=>x.id==state.currT);
+            let field = id.replace('in-t', '');
+            t[field] = e.target.value;
+            
+            let calcPts = (Number(t.pg) || 0) * 3 + (Number(t.pe) || 0) * 1;
+            t.pts = calcPts;
+            document.getElementById('in-tpts').value = calcPts;
+
+            await syncTeam(t);
+            render();
+        };
+    });
+
+    loadData();
+</script>
+</body>
+</html>
