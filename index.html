@@ -22,6 +22,7 @@
         .tab-btn { background: none; border: 2px solid #444; color: #888; font-family: 'Bebas Neue'; font-size: 22px; padding: 6px 25px; border-radius: 50px; cursor: pointer; transition: 0.3s; letter-spacing: 1px; }
         .tab-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(251,223,126,0.1); }
         
+        /* NUEVOS ESTILOS LIBERTADORES */
         .sub-menu { display: flex; justify-content: center; gap: 15px; margin: 15px 0; }
         .sub-btn { background: #222; border: 1px solid #444; color: #aaa; padding: 5px 15px; border-radius: 20px; cursor: pointer; font-size: 14px; }
         .sub-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: bold; }
@@ -54,6 +55,7 @@
         .roulette-window span { font-family: 'Bebas Neue'; font-size: 28px; color: #fff; margin-top: 10px; display: block; letter-spacing: 1px; }
         .roulette-window.glow { border-color: var(--yellow); box-shadow: 0 0 30px rgba(241, 196, 15, 0.4); transform: scale(1.05); }
         .roulette-window.glow span { color: var(--yellow); text-shadow: 0 0 10px var(--yellow); }
+        /* FIN ESTILOS LIBERTADORES */
 
         .main-content { display: flex; padding: 20px; gap: 20px; align-items: flex-start; }
         
@@ -234,11 +236,23 @@
         <div id="liber-perdedores-section" style="display:none;">
             <div class="bracket">
                 <div class="round">
-                    <h4 style="color:var(--grey)">Semifinales Perdedores</h4>
-                    <div class="matchup"><span id="p1-local">3º Grupo A</span></div>
-                    <div class="matchup"><span id="p1-vis">3º Grupo C</span></div>
+                    <h4 style="color:var(--grey)">Semifinales Perdedores (Ida/Vuelta)</h4>
+                    <div class="matchup" style="margin-bottom: 20px;">
+                        <div class="matchup-team"><span id="p1-local">3º Grupo A</span></div>
+                        <div class="matchup-team"><span id="p1-vis">3º Grupo B</span></div>
+                    </div>
+                    <div class="matchup">
+                        <div class="matchup-team"><span id="p2-local">3º Grupo C</span></div>
+                        <div class="matchup-team"><span id="p2-vis">3º Grupo D</span></div>
+                    </div>
                 </div>
-                <div class="round"><h4 style="color:#e74c3c">Final</h4><div class="matchup"><span>Ganador M1</span></div></div>
+                <div class="round">
+                    <h4 style="color:#e74c3c">Gran Final Perdedores</h4>
+                    <div class="matchup">
+                        <div class="matchup-team"><span>Ganador Semifinal 1</span></div>
+                        <div class="matchup-team"><span>Ganador Semifinal 2</span></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -247,9 +261,8 @@
 
 <script>
     const supabaseUrl = 'https://tcelmbxtsolpijmccuah.supabase.co';
-    // ⬇️ CLAVES REALES CORREGIDAS AQUÍ ⬇️
-    const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjZWxtYnh0c29scGlqbWNjdWFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NzMyMTIsImV4cCI6MjA5NDU0OTIxMn0.a7d9y-oejpsfftzlQDvzUg-MaSR9YdtD4awS-jb8Ij0';
-    const adminKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjZWxtYnh0c29scGlqbWNjdWFoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODk3MzIxMiwiZXhwIjoyMDk0NTQ5MjEyfQ.AQOipGujTRbRPXEkn6Rm5SI6kIp71xAID6hxOXV55h0';
+    const anonKey = 'sb_publishable_vkQ38JVUyYSLoeiOKw6H6w_e4eTatx9';
+    const adminKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjZWxtYnh0c29scGlqbWNjdWFoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MT74OTczMjEyLCJleHAiOjIwOTQ1NDkyMTJ9.AQOipGujTRbRPXEkn6Rm5SI6kIp71xAID6hxOXV55h0';
 
     let _supabase = supabase.createClient(supabaseUrl, anonKey);
     let state = { teams: [], players: [], liberGroups: [], currT: null, currP: null, isAdmin: false, activeTab: 'teams', activeSubLiber: 'grupos' };
@@ -442,6 +455,7 @@
         }
     }
 
+    /* FUNCIONES DE LÓGICA EXCLUSIVA PARA LA LIBERTADORES */
     async function addLibertadoresGroup() {
         let alphabet = 'ABCDEFGH';
         let letra = alphabet[state.liberGroups.length] || 'X';
@@ -620,12 +634,18 @@
             document.getElementById('c4-local').innerText = gD[0]?.name || "1º Grupo D";
             document.getElementById('c4-vis').innerText = gC[1]?.name || "2º Grupo C";
             
+            // ASIGNACIÓN DE LOS 4 TERCEROS EN LAS DOS SEMIFINALES
             if(document.getElementById('p1-local')) {
+                // Semifinal 1
                 document.getElementById('p1-local').innerText = gA[2]?.name || "3º Grupo A";
-                document.getElementById('p1-vis').innerText = gC[2]?.name || "3º Grupo C";
+                document.getElementById('p1-vis').innerText = gB[2]?.name || "3º Grupo B";
+                // Semifinal 2
+                document.getElementById('p2-local').innerText = gC[2]?.name || "3º Grupo C";
+                document.getElementById('p2-vis').innerText = gD[2]?.name || "3º Grupo D";
             }
         }
     }
+    /* FIN DE FUNCIONES DE LA LIBERTADORES */
 
     function render() {
         const nav = document.getElementById('nav');
