@@ -22,7 +22,7 @@
         .tab-btn { background: none; border: 2px solid #444; color: #888; font-family: 'Bebas Neue'; font-size: 22px; padding: 6px 25px; border-radius: 50px; cursor: pointer; transition: 0.3s; letter-spacing: 1px; }
         .tab-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(251,223,126,0.1); }
         
-        /* NUEVOS ESTILOS LIBERTADORES */
+        /* SECCIONES LIBERTADORES Y COPA PERDEDORES */
         .sub-menu { display: flex; justify-content: center; gap: 15px; margin: 15px 0; }
         .sub-btn { background: #222; border: 1px solid #444; color: #aaa; padding: 5px 15px; border-radius: 20px; cursor: pointer; font-size: 14px; }
         .sub-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: bold; }
@@ -36,33 +36,48 @@
         .match-row input { width: 35px; text-align: center; padding: 2px; background: #000; border: 1px solid #444; color: #fff; font-size: 12px; border-radius: 4px; }
         .row-gold td { background: rgba(241, 196, 15, 0.12) !important; color: #fbdf7e; }
         .row-grey td { background: rgba(127, 140, 141, 0.12) !important; color: #bdc3c7; }
-        .bracket { display: flex; justify-content: space-between; gap: 30px; margin-top: 20px; background: #161616; padding: 20px; border-radius: 12px; border: 1px solid #333; overflow-x: auto; }
-        .round { display: flex; flex-direction: column; justify-content: space-around; gap: 15px; min-width: 240px; }
-        .round h4 { text-align: center; margin: 0 0 10px 0; font-family: 'Bebas Neue'; font-size: 20px; border-bottom: 1px solid #444; padding-bottom: 5px; }
-        .matchup { background: #111; border: 1px solid #333; padding: 10px; border-radius: 8px; }
-        .matchup-team { display: flex; justify-content: space-between; align-items: center; margin: 6px 0; font-size: 13px; }
-        .matchup-team span { max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold; }
+        
+        /* FORMATO ELIMINATORIAS IDA Y VUELTA PARALELO */
+        .bracket { display: flex; justify-content: space-between; gap: 30px; margin-top: 20px; background: #161616; padding: 25px; border-radius: 12px; border: 1px solid #333; }
+        .round { display: flex; flex-direction: column; justify-content: flex-start; gap: 20px; flex: 1; }
+        .round h4 { text-align: left; margin: 0 0 15px 0; font-family: 'Bebas Neue'; font-size: 24px; border-bottom: 1px solid #333; padding-bottom: 8px; letter-spacing: 1px; }
+        
+        .matchup-card { background: #111; border: 1px solid #252525; padding: 12px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; }
+        .matchup-header-labels { display: flex; justify-content: flex-end; gap: 25px; padding-right: 5px; font-size: 10px; color: #666; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .matchup-header-labels span { width: 76px; text-align: center; }
+        .matchup-teams-container { display: flex; flex-direction: column; gap: 6px; }
+        .matchup-row-team { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: bold; }
+        .matchup-row-team span { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        
+        .inputs-goles-dobles { display: flex; gap: 20px; align-items: center; }
+        .group-goles { display: flex; gap: 4px; }
+        .group-goles input { width: 36px; text-align: center; padding: 4px; background: #000; border: 1px solid #444; color: #fff; font-size: 13px; border-radius: 4px; font-weight: bold; }
+        .group-goles input:focus { border-color: var(--accent); outline: none; }
+        .group-goles input:disabled { border-color: #222; color: #666; background: #0a0a0a; }
+        
+        .final-single-input { width: 45px !important; }
+        .king-box { background: #0a0a0a; border: 1px solid var(--accent); border-radius: 6px; padding: 12px; text-align: center; margin-top: 15px; }
+        
         .sorteo-box { background: #1e1e1e; border: 2px dashed var(--yellow); padding: 20px; border-radius: 12px; margin-bottom: 25px; display: none; }
         .admin-mode .sorteo-box { display: block; }
         .sorteo-inputs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 15px; }
         select { width: 100%; padding: 8px; background: #000; color: #fff; border: 1px solid #555; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        
         #live-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; }
         .roulette-container { background: #222; border: 4px solid var(--gold); padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 0 50px rgba(251,223,126,0.3); min-width: 420px; }
         .roulette-title { font-family: 'Bebas Neue'; font-size: 38px; color: var(--accent); margin: 0 0 10px 0; letter-spacing: 2px; }
         .roulette-group-target { font-family: 'Rajdhani'; font-size: 22px; color: #fff; font-weight: bold; margin-bottom: 25px; background: #333; padding: 6px; border-radius: 8px; }
         .roulette-window { background: #000; border: 2px solid #444; padding: 20px; border-radius: 10px; min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.1s; }
-        .roulette-window img { width: 110px; height: 110px; object-fit: contain; transition: transform 0.1s; }
+        .roulette-window img { width: 110px; height: 110px; object-fit: contain; }
         .roulette-window span { font-family: 'Bebas Neue'; font-size: 28px; color: #fff; margin-top: 10px; display: block; letter-spacing: 1px; }
-        .roulette-window.glow { border-color: var(--yellow); box-shadow: 0 0 30px rgba(241, 196, 15, 0.4); transform: scale(1.05); }
-        .roulette-window.glow span { color: var(--yellow); text-shadow: 0 0 10px var(--yellow); }
-        /* FIN ESTILOS LIBERTADORES */
 
+        /* VISTA DE EQUIPOS Y JUGADORES ORIGINAL */
         .main-content { display: flex; padding: 20px; gap: 20px; align-items: flex-start; }
-        
         #view-teams { display: flex; width: 100%; gap: 20px; align-items: flex-start; }
         .gallery { flex: 3; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 30px; }
         #editor { flex: 1; background: #222; padding: 20px; border-radius: 15px; border: 1px solid #444; position: sticky; top: 20px; height: fit-content; }
         
+        /* VISTA CLASIFICACIÓN ORIGINAL COMPLETAMENTE RESTAURADA */
         #view-classification { display: none; width: 100%; max-width: 1000px; margin: 0 auto; }
         .leaderboard-box { background: #161616; padding: 25px; border-radius: 15px; border: 1px solid #333; width: 100%; box-sizing: border-box; }
         .clas-table { width: 100%; border-collapse: collapse; font-size: 15px; text-align: left; }
@@ -72,6 +87,7 @@
         .clas-badge { font-weight: bold; width: 25px; display: inline-block; text-align: center; font-size: 16px; }
         .clas-logo { width: 28px; height: 28px; object-fit: contain; margin-right: 10px; border-radius: 4px; vertical-align: middle; }
         
+        /* CARTAS FC ORIGINALES COMPLETAMENTE RESTAURADAS */
         .fc-card { width: 230px; height: 330px; background: var(--gold); border-radius: 15px; position: relative; color: #1a1a1a; box-shadow: 0 10px 25px rgba(0,0,0,0.5); transition: 0.3s; cursor: pointer; overflow: hidden; }
         .fc-card:hover { transform: scale(1.03); }
         .rating-box { position: absolute; top: 25px; left: 15px; z-index: 10; font-family: 'Rajdhani'; text-align: center; }
@@ -85,14 +101,19 @@
         .name { font-family: 'Bebas Neue'; font-size: 26px; margin: 0; }
         .mini-stats { display: flex; justify-content: center; gap: 8px; font-size: 11px; font-weight: bold; margin-top: 4px; opacity: 0.9; }
         .discipline { display: flex; justify-content: center; gap: 15px; margin-top: 6px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 4px; }
+        
+        /* INPUTS Y EDICIÓN ORIGINAL RESTAURADOS */
         .edit-group { margin-bottom: 12px; }
         label { font-size: 10px; color: #aaa; text-transform: uppercase; display: block; margin-bottom: 4px; }
         input { width: 100%; padding: 8px; background: #000; color: white; border: 1px solid #555; border-radius: 5px; box-sizing: border-box; }
         input:disabled { background: #111; color: var(--accent); border-color: #333; font-weight: bold; }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #2a2a2a; padding: 10px; border-radius: 8px; margin-top: 10px; }
         .btn { width: 100%; padding: 10px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .admin-only { display: none; }
-        .admin-mode .admin-only { display: block; }
+        
+        .admin-only { display: none !important; }
+        .admin-mode .admin-only { display: flex !important; }
+        .admin-mode div.admin-only.sorteo-box { display: block !important; }
+        
         #add-team-btn { display: none; }
         .admin-mode #add-team-btn { display: block; }
     </style>
@@ -132,7 +153,7 @@
                 <input type="password" id="pass-input" placeholder="Introduce la contraseña...">
                 <button class="btn" style="background:var(--accent); color:#000" onclick="checkPass()">Entrar</button>
             </div>
-            <div id="admin-panel" class="admin-only">
+            <div id="admin-panel" class="admin-only" style="flex-direction: column;">
                 <h3 id="ed-title" style="margin:0 0 15px 0; color:var(--accent)">Gestión Liga</h3>
                 <button class="btn" style="background:var(--accent); color:#000" onclick="addPlayer()">+ Añadir Nuevo Jugador</button>
                 
@@ -203,14 +224,13 @@
             <button class="sub-btn" id="sub-btn-perdedores" onclick="switchSubLibertadores('perdedores')">Copa Perdedores (3ºs)</button>
         </div>
 
-        <div id="admin-liber-controls" class="admin-only" style="margin-bottom: 20px; text-align: center; display: flex; justify-content: center; gap: 10px;">
+        <div id="admin-liber-controls" class="admin-only" style="margin-bottom: 20px; text-align: center; justify-content: center; gap: 10px; display: none;">
             <button class="btn" style="background:var(--accent); color:#000; width:auto; padding:8px 16px; font-size:13px;" onclick="addLibertadoresGroup()">+ Crear Nuevo Grupo</button>
             <button class="btn" style="background:var(--red); color:#fff; width:auto; padding:8px 16px; font-size:13px;" onclick="clearLibertadoresData()">🗑️ Eliminar Todos los Grupos</button>
         </div>
 
-        <div class="sorteo-box" id="sorteo-visual-panel">
+        <div class="sorteo-box admin-only" id="sorteo-visual-panel">
             <h3 style="color:var(--yellow); font-family:'Bebas Neue'; font-size:24px; margin:0;">🔮 Bombo de Sorteo con Selección de Equipos</h3>
-            <p style="font-size:12px; color:#aaa; margin:5px 0 15px 0;">Elige los clasificados. Al pulsar el botón, arrancará la ruleta interactiva de escudos.</p>
             <div class="sorteo-inputs-grid" id="sorteo-inputs-container"></div>
             <button class="btn" style="background:var(--yellow); color:#000; font-weight:bold; width:auto; padding:10px 30px; margin-top:15px;" onclick="startTelevisedSorteo()">🎬 Iniciar Sorteo Dinámico con Escudos</button>
         </div>
@@ -221,36 +241,170 @@
 
         <div id="liber-playoffs-section" style="display:none;">
             <div class="bracket">
-                <div class="round">
-                    <h4 style="color:var(--accent)">Cuartos (Ida/Vuelta)</h4>
-                    <div class="matchup"><div class="matchup-team"><span id="c1-local">Esperando...</span></div><div class="matchup-team"><span id="c1-vis">Esperando...</span></div></div>
-                    <div class="matchup"><div class="matchup-team"><span id="c2-local">Esperando...</span></div><div class="matchup-team"><span id="c2-vis">Esperando...</span></div></div>
-                    <div class="matchup"><div class="matchup-team"><span id="c3-local">Esperando...</span></div><div class="matchup-team"><span id="c3-vis">Esperando...</span></div></div>
-                    <div class="matchup"><div class="matchup-team"><span id="c4-local">Esperando...</span></div><div class="matchup-team"><span id="c4-vis">Esperando...</span></div></div>
+                <div class="round" style="flex: 1.3;">
+                    <h4 style="color:var(--accent)">Cuartos de Final</h4>
+                    
+                    <div class="matchup-card">
+                        <div class="matchup-header-labels"><span>Ida</span><span>Vuelta</span></div>
+                        <div class="matchup-teams-container">
+                            <div class="matchup-row-team">
+                                <span id="c1-local">1º Grupo A</span>
+                                <div class="inputs-goles-dobles">
+                                    <div class="group-goles"><input type="number" id="c1-l1" oninput="calcularLibertadores()"><input type="number" id="c1-v1" oninput="calcularLibertadores()"></div>
+                                    <div class="group-goles"><input type="number" id="c1-l2" oninput="calcularLibertadores()"><input type="number" id="c1-v2" oninput="calcularLibertadores()"></div>
+                                </div>
+                            </div>
+                            <div class="matchup-row-team"><span id="c1-vis">2º Grupo B</span></div>
+                        </div>
+                    </div>
+
+                    <div class="matchup-card">
+                        <div class="matchup-header-labels"><span>Ida</span><span>Vuelta</span></div>
+                        <div class="matchup-teams-container">
+                            <div class="matchup-row-team">
+                                <span id="c2-local">1º Grupo C</span>
+                                <div class="inputs-goles-dobles">
+                                    <div class="group-goles"><input type="number" id="c2-l1" oninput="calcularLibertadores()"><input type="number" id="c2-v1" oninput="calcularLibertadores()"></div>
+                                    <div class="group-goles"><input type="number" id="c2-l2" oninput="calcularLibertadores()"><input type="number" id="c2-v2" oninput="calcularLibertadores()"></div>
+                                </div>
+                            </div>
+                            <div class="matchup-row-team"><span id="c2-vis">2º Grupo D</span></div>
+                        </div>
+                    </div>
+
+                    <div class="matchup-card">
+                        <div class="matchup-header-labels"><span>Ida</span><span>Vuelta</span></div>
+                        <div class="matchup-teams-container">
+                            <div class="matchup-row-team">
+                                <span id="c3-local">1º Grupo B</span>
+                                <div class="inputs-goles-dobles">
+                                    <div class="group-goles"><input type="number" id="c3-l1" oninput="calcularLibertadores()"><input type="number" id="c3-v1" oninput="calcularLibertadores()"></div>
+                                    <div class="group-goles"><input type="number" id="c3-l2" oninput="calcularLibertadores()"><input type="number" id="c3-v2" oninput="calcularLibertadores()"></div>
+                                </div>
+                            </div>
+                            <div class="matchup-row-team"><span id="c3-vis">2º Grupo A</span></div>
+                        </div>
+                    </div>
+
+                    <div class="matchup-card">
+                        <div class="matchup-header-labels"><span>Ida</span><span>Vuelta</span></div>
+                        <div class="matchup-teams-container">
+                            <div class="matchup-row-team">
+                                <span id="c4-local">1º Grupo D</span>
+                                <div class="inputs-goles-dobles">
+                                    <div class="group-goles"><input type="number" id="c4-l1" oninput="calcularLibertadores()"><input type="number" id="c4-v1" oninput="calcularLibertadores()"></div>
+                                    <div class="group-goles"><input type="number" id="c4-l2" oninput="calcularLibertadores()"><input type="number" id="c4-v2" oninput="calcularLibertadores()"></div>
+                                </div>
+                            </div>
+                            <div class="matchup-row-team"><span id="c4-vis">2º Grupo C</span></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="round"><h4 style="color:var(--yellow)">Semifinales</h4><div class="matchup"><span>Ganador C1</span></div><div class="matchup"><span>Ganador C2</span></div></div>
-                <div class="round"><h4 style="color:var(--gold)">Gran Final</h4><div class="matchup"><span>Finalista 1</span></div></div>
+
+                <div class="round" style="flex: 1.2;">
+                    <h4 style="color:var(--yellow)">Semifinales</h4>
+                    <div class="matchup-card" style="margin-top:40px;">
+                        <div class="matchup-header-labels"><span>Ida</span><span>Vuelta</span></div>
+                        <div class="matchup-teams-container">
+                            <div class="matchup-row-team">
+                                <span id="semiL1-local" style="color:#888;">Ganador Q1</span>
+                                <div class="inputs-goles-dobles">
+                                    <div class="group-goles"><input type="number" id="sl1-l1" oninput="calcularLibertadores()"><input type="number" id="sl1-v1" oninput="calcularLibertadores()"></div>
+                                    <div class="group-goles"><input type="number" id="sl1-l2" oninput="calcularLibertadores()"><input type="number" id="sl1-v2" oninput="calcularLibertadores()"></div>
+                                </div>
+                            </div>
+                            <div class="matchup-row-team"><span id="semiL1-vis" style="color:#888;">Ganador Q2</span></div>
+                        </div>
+                    </div>
+
+                    <div class="matchup-card" style="margin-top:70px;">
+                        <div class="matchup-header-labels"><span>Ida</span><span>Vuelta</span></div>
+                        <div class="matchup-teams-container">
+                            <div class="matchup-row-team">
+                                <span id="semiL2-local" style="color:#888;">Ganador Q3</span>
+                                <div class="inputs-goles-dobles">
+                                    <div class="group-goles"><input type="number" id="sl2-l1" oninput="calcularLibertadores()"><input type="number" id="sl2-v1" oninput="calcularLibertadores()"></div>
+                                    <div class="group-goles"><input type="number" id="sl2-l2" oninput="calcularLibertadores()"><input type="number" id="sl2-v2" oninput="calcularLibertadores()"></div>
+                                </div>
+                            </div>
+                            <div class="matchup-row-team"><span id="semiL2-vis" style="color:#888;">Ganador Q4</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="round">
+                    <h4 style="color:var(--gold)">Gran Final (Único)</h4>
+                    <div class="matchup-card" style="margin-top:120px;">
+                        <div class="matchup-teams-container">
+                            <div class="matchup-row-team">
+                                <span id="finalL-local" style="color:#888;">Finalista 1</span>
+                                <div class="group-goles"><input type="number" id="fl-gL" class="final-single-input" oninput="calcularLibertadores()"></div>
+                            </div>
+                            <div class="matchup-row-team">
+                                <span id="finalL-vis" style="color:#888;">Finalista 2</span>
+                                <div class="group-goles"><input type="number" id="fl-gV" class="final-single-input" oninput="calcularLibertadores()"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="king-box" style="border-color:var(--gold)">
+                        <div style="font-size:11px; color:var(--accent); font-weight:bold;">🏆 CAMPEÓN LIBERTADORES 🏆</div>
+                        <div id="king-libertadores-text" style="font-family:'Bebas Neue'; font-size:24px;">ESPERANDO...</div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div id="liber-perdedores-section" style="display:none;">
             <div class="bracket">
-                <div class="round">
-                    <h4 style="color:var(--grey)">Semifinales Perdedores (Ida/Vuelta)</h4>
-                    <div class="matchup" style="margin-bottom: 20px;">
-                        <div class="matchup-team"><span id="p1-local">3º Grupo A</span></div>
-                        <div class="matchup-team"><span id="p1-vis">3º Grupo B</span></div>
+                <div class="round" style="flex: 1.3;">
+                    <h4 style="color:var(--grey)">Semifinales Perdedores</h4>
+                    
+                    <div class="matchup-card">
+                        <div class="matchup-header-labels"><span>Ida</span><span>Vuelta</span></div>
+                        <div class="matchup-teams-container">
+                            <div class="matchup-row-team">
+                                <span id="p1-local">Panacazos FC</span>
+                                <div class="inputs-goles-dobles">
+                                    <div class="group-goles"><input type="number" id="p1-l1" oninput="calcularGanadorPerdedores()"><input type="number" id="p1-v1" oninput="calcularGanadorPerdedores()"></div>
+                                    <div class="group-goles"><input type="number" id="p1-l2" oninput="calcularGanadorPerdedores()"><input type="number" id="p1-v2" oninput="calcularGanadorPerdedores()"></div>
+                                </div>
+                            </div>
+                            <div class="matchup-row-team"><span id="p1-vis">Ameri Fc</span></div>
+                        </div>
                     </div>
-                    <div class="matchup">
-                        <div class="matchup-team"><span id="p2-local">3º Grupo C</span></div>
-                        <div class="matchup-team"><span id="p2-vis">3º Grupo D</span></div>
+                    
+                    <div class="matchup-card">
+                        <div class="matchup-header-labels"><span>Ida</span><span>Vuelta</span></div>
+                        <div class="matchup-teams-container">
+                            <div class="matchup-row-team">
+                                <span id="p2-local">Chankas CYC</span>
+                                <div class="inputs-goles-dobles">
+                                    <div class="group-goles"><input type="number" id="p2-l1" oninput="calcularGanadorPerdedores()"><input type="number" id="p2-v1" oninput="calcularGanadorPerdedores()"></div>
+                                    <div class="group-goles"><input type="number" id="p2-l2" oninput="calcularGanadorPerdedores()"><input type="number" id="p2-v2" oninput="calcularGanadorPerdedores()"></div>
+                                </div>
+                            </div>
+                            <div class="matchup-row-team"><span id="p2-vis">3º Grupo D</span></div>
+                        </div>
                     </div>
                 </div>
+                
                 <div class="round">
-                    <h4 style="color:#e74c3c">Gran Final Perdedores</h4>
-                    <div class="matchup">
-                        <div class="matchup-team"><span>Ganador Semifinal 1</span></div>
-                        <div class="matchup-team"><span>Ganador Semifinal 2</span></div>
+                    <h4 style="color:#ff4d4d">Gran Final Perdedores (Único)</h4>
+                    <div class="matchup-card" style="margin-top:25px;">
+                        <div class="matchup-teams-container">
+                            <div class="matchup-row-team">
+                                <span id="final-p1-name" style="color:#666;">Ganador Semifinal 1</span>
+                                <div class="group-goles"><input type="number" id="final-gL" class="final-single-input" oninput="calcularGanadorPerdedores()"></div>
+                            </div>
+                            <div class="matchup-row-team">
+                                <span id="final-p2-name" style="color:#666;">Ganador Semifinal 2</span>
+                                <div class="group-goles"><input type="number" id="final-gV" class="final-single-input" oninput="calcularGanadorPerdedores()"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="king-box">
+                        <div style="font-size:11px; color:var(--accent); font-weight:bold; margin-bottom:3px;">💩 REY DE LOS PERDEDORES 💩</div>
+                        <div id="king-winner-text" style="font-family:'Bebas Neue'; font-size:24px;">ESPERANDO...</div>
                     </div>
                 </div>
             </div>
@@ -266,6 +420,83 @@
 
     let _supabase = supabase.createClient(supabaseUrl, anonKey);
     let state = { teams: [], players: [], liberGroups: [], currT: null, currP: null, isAdmin: false, activeTab: 'teams', activeSubLiber: 'grupos' };
+
+    function calcularGanadorPerdedores() {
+        let s1_l1 = Number(document.getElementById('p1-l1').value) || 0; 
+        let s1_v1 = Number(document.getElementById('p1-v1').value) || 0; 
+        let s1_l2 = Number(document.getElementById('p1-l2').value) || 0; 
+        let s1_v2 = Number(document.getElementById('p1-v2').value) || 0; 
+        let totalPanacazos = s1_l1 + s1_v2; 
+        let totalAmeri = s1_v1 + s1_l2; 
+        let playedS1 = document.getElementById('p1-l1').value !== '' && document.getElementById('p1-l2').value !== '';
+        let ganadorSemi1 = "Ganador Semifinal 1";
+        if (playedS1) {
+            if (totalPanacazos > totalAmeri) ganadorSemi1 = document.getElementById('p1-local').innerText;
+            else if (totalAmeri > totalPanacazos) ganadorSemi1 = document.getElementById('p1-vis').innerText;
+            else ganadorSemi1 = "Panacazos FC (P)";
+        }
+        document.getElementById('final-p1-name').innerText = ganadorSemi1;
+
+        let s2_l1 = Number(document.getElementById('p2-l1').value) || 0;
+        let s2_v1 = Number(document.getElementById('p2-v1').value) || 0;
+        let s2_l2 = Number(document.getElementById('p2-l2').value) || 0;
+        let s2_v2 = Number(document.getElementById('p2-v2').value) || 0;
+        let totalChankas = s2_l1 + s2_v2;
+        let total3D = s2_v1 + s2_l2;
+        let playedS2 = document.getElementById('p2-l1').value !== '' && document.getElementById('p2-l2').value !== '';
+        let ganadorSemi2 = "Ganador Semifinal 2";
+        if (playedS2) {
+            if (totalChankas > total3D) ganadorSemi2 = document.getElementById('p2-local').innerText;
+            else if (total3D > totalChankas) ganadorSemi2 = document.getElementById('p2-vis').innerText;
+            else ganadorSemi2 = "Chankas CYC (P)";
+        }
+        document.getElementById('final-p2-name').innerText = ganadorSemi2;
+
+        let f_gL = document.getElementById('final-gL').value;
+        let f_gV = document.getElementById('final-gV').value;
+        if (f_gL !== '' && f_gV !== '') {
+            if (Number(f_gL) > Number(f_gV)) document.getElementById('king-winner-text').innerText = ganadorSemi1.toUpperCase();
+            else if (Number(f_gV) > Number(f_gL)) document.getElementById('king-winner-text').innerText = ganadorSemi2.toUpperCase();
+            else document.getElementById('king-winner-text').innerText = "EMPATE EN LA FINAL";
+        } else {
+            document.getElementById('king-winner-text').innerText = "ESPERANDO...";
+        }
+    }
+
+    function calcularLibertadores() {
+        const checkCruce = (l1, v1, l2, v2, locId, visId) => {
+            let val_l1 = Number(document.getElementById(l1).value) || 0;
+            let val_v1 = Number(document.getElementById(v1).value) || 0;
+            let val_l2 = Number(document.getElementById(l2).value) || 0;
+            let val_v2 = Number(document.getElementById(v2).value) || 0;
+            if (document.getElementById(l1).value === '' || document.getElementById(l2).value === '') return null;
+            return (val_l1 + val_v2) > (val_v1 + val_l2) ? document.getElementById(locId).innerText : document.getElementById(visId).innerText;
+        };
+
+        let q1 = checkCruce('c1-l1','c1-v1','c1-l2','c1-v2', 'c1-local', 'c1-vis') || "Ganador Q1";
+        let q2 = checkCruce('c2-l1','c2-v1','c2-l2','c2-v2', 'c2-local', 'c2-vis') || "Ganador Q2";
+        let q3 = checkCruce('c3-l1','c3-v1','c3-l2','c3-v2', 'c3-local', 'c3-vis') || "Ganador Q3";
+        let q4 = checkCruce('c4-l1','c4-v1','c4-l2','c4-v2', 'c4-local', 'c4-vis') || "Ganador Q4";
+
+        document.getElementById('semiL1-local').innerText = q1;
+        document.getElementById('semiL1-vis').innerText = q2;
+        document.getElementById('semiL2-local').innerText = q3;
+        document.getElementById('semiL2-vis').innerText = q4;
+
+        let s1 = checkCruce('sl1-l1','sl1-v1','sl1-l2','sl1-v2', 'semiL1-local', 'semiL1-vis') || "Finalista 1";
+        let s2 = checkCruce('sl2-l1','sl2-v1','sl2-l2','sl2-v2', 'semiL2-local', 'semiL2-vis') || "Finalista 2";
+
+        document.getElementById('finalL-local').innerText = s1;
+        document.getElementById('finalL-vis').innerText = s2;
+
+        let fl_l = document.getElementById('fl-gL').value;
+        let fl_v = document.getElementById('fl-gV').value;
+        if(fl_l !== '' && fl_v !== '') {
+            document.getElementById('king-libertadores-text').innerText = Number(fl_l) > Number(fl_v) ? s1.toUpperCase() : s2.toUpperCase();
+        } else {
+            document.getElementById('king-libertadores-text').innerText = "ESPERANDO...";
+        }
+    }
 
     function switchTab(tab) {
         state.activeTab = tab;
@@ -320,11 +551,7 @@
             state.players = pData || [];
             state.liberGroups = lData || [];
             state.liberGroups.sort((a,b) => a.name.localeCompare(b.name));
-        } catch(e) {
-            state.teams = [];
-            state.players = [];
-            state.liberGroups = [];
-        }
+        } catch(e) {}
         if(!state.currT && state.teams.length > 0) state.currT = state.teams[0].id;
         render();
         if(state.currT) selectT(state.currT);
@@ -374,20 +601,11 @@
         let n = prompt("Nombre del Equipo:");
         if(n) {
             let t = { id: Date.now(), name: n, logo: '', pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, pts: 0 };
-            
             if(state.isAdmin) {
-                let { data, error } = await _supabase.from('teams').upsert(t).select();
-                if(data && data[0]) {
-                    state.teams.push(data[0]);
-                    state.currT = data[0].id;
-                } else {
-                    state.teams.push(t);
-                    state.currT = t.id;
-                }
-            } else {
-                state.teams.push(t);
-                state.currT = t.id;
-            }
+                let { data } = await _supabase.from('teams').upsert(t).select();
+                if(data && data[0]) { state.teams.push(data[0]); state.currT = data[0].id; }
+                else { state.teams.push(t); state.currT = t.id; }
+            } else { state.teams.push(t); state.currT = t.id; }
             render();
             selectT(state.currT);
         }
@@ -455,7 +673,6 @@
         }
     }
 
-    /* FUNCIONES DE LÓGICA EXCLUSIVA PARA LA LIBERTADORES */
     async function addLibertadoresGroup() {
         let alphabet = 'ABCDEFGH';
         let letra = alphabet[state.liberGroups.length] || 'X';
@@ -480,17 +697,11 @@
         if(!container) return;
         container.innerHTML = '';
         let totalInputs = state.liberGroups.length * 3;
-        
         let opcionesHtml = '<option value="">-- Selecciona un equipo --</option>';
-        state.teams.forEach(t => {
-            opcionesHtml += `<option value="${t.name}">${t.name}</option>`;
-        });
+        state.teams.forEach(t => { opcionesHtml += `<option value="${t.name}">${t.name}</option>`; });
 
         for(let i = 0; i < totalInputs; i++) {
-            container.innerHTML += `<div>
-                <label>Plaza Sorteo #${i+1}</label>
-                <select class="sorteo-team-select">${opcionesHtml}</select>
-            </div>`;
+            container.innerHTML += `<div><label>Plaza Sorteo #${i+1}</label><select class="sorteo-team-select">${opcionesHtml}</select></div>`;
         }
     }
 
@@ -536,7 +747,6 @@
                 });
 
                 await promesasRuleta;
-
                 let equipoElegidoReal = listaMezclada.pop();
                 let objetoEquipoReal = state.teams.find(x => x.name === equipoElegidoReal);
                 
@@ -591,7 +801,6 @@
 
         g.matches[matchIndex].golesL = valL !== '' ? Number(valL) : '';
         g.matches[matchIndex].golesV = valV !== '' ? Number(valV) : '';
-
         g.teams_data.forEach(t => { t.pj=0; t.pg=0; t.pe=0; t.pp=0; t.gf=0; t.gc=0; t.dg=0; t.pts=0; });
         
         g.matches.forEach(m => {
@@ -611,10 +820,7 @@
 
         g.teams_data.forEach(t => { t.dg = t.gf - t.gc; });
         g.teams_data.sort((a,b) => b.pts !== a.pts ? b.pts - a.pts : b.dg - a.dg);
-        
-        if(state.isAdmin) {
-            await syncLiberGroup(g);
-        }
+        if(state.isAdmin) await syncLiberGroup(g);
         render();
     }
 
@@ -634,18 +840,12 @@
             document.getElementById('c4-local').innerText = gD[0]?.name || "1º Grupo D";
             document.getElementById('c4-vis').innerText = gC[1]?.name || "2º Grupo C";
             
-            // ASIGNACIÓN DE LOS 4 TERCEROS EN LAS DOS SEMIFINALES
-            if(document.getElementById('p1-local')) {
-                // Semifinal 1
-                document.getElementById('p1-local').innerText = gA[2]?.name || "3º Grupo A";
-                document.getElementById('p1-vis').innerText = gB[2]?.name || "3º Grupo B";
-                // Semifinal 2
-                document.getElementById('p2-local').innerText = gC[2]?.name || "3º Grupo C";
-                document.getElementById('p2-vis').innerText = gD[2]?.name || "3º Grupo D";
-            }
+            document.getElementById('p1-local').innerText = gA[2]?.name || "Panacazos FC";
+            document.getElementById('p1-vis').innerText = gB[2]?.name || "Ameri Fc";
+            document.getElementById('p2-local').innerText = gC[2]?.name || "Chankas CYC";
+            document.getElementById('p2-vis').innerText = gD[2]?.name || "3º Grupo D";
         }
     }
-    /* FIN DE FUNCIONES DE LA LIBERTADORES */
 
     function render() {
         const nav = document.getElementById('nav');
@@ -661,77 +861,57 @@
             });
         }
 
+        // CLASIFICACIÓN GENERAL ORIGINAL RESTAURADA COMPLETA (CON LOGOS)
         const clasBody = document.getElementById('clas-body');
-        clasBody.innerHTML = '';
-        
-        let sortedTeams = [...state.teams].sort((a,b) => {
-            let ptsA = (Number(a.pg) || 0) * 3 + (Number(a.pe) || 0) * 1;
-            let ptsB = (Number(b.pg) || 0) * 3 + (Number(b.pe) || 0) * 1;
-            if (ptsB !== ptsA) return ptsB - ptsA;
-            let dgA = (Number(a.gf) || 0) - (Number(a.gc) || 0);
-            let dgB = (Number(b.gf) || 0) - (Number(b.gc) || 0);
-            return dgB - dgA;
-        });
-        
-        sortedTeams.forEach((t, index) => {
-            let gf = Number(t.gf) || 0;
-            let gc = Number(t.gc) || 0;
-            let dg = gf - gc;
-            let dgText = dg > 0 ? `+${dg}` : dg;
-            let ptsCalculados = (Number(t.pg) || 0) * 3 + (Number(t.pe) || 0) * 1;
-
-            clasBody.innerHTML += `
-                <tr>
+        if(clasBody) {
+            clasBody.innerHTML = '';
+            let sortedTeams = [...state.teams].sort((a,b) => {
+                let ptsA = (Number(a.pg) || 0) * 3 + (Number(a.pe) || 0) * 1;
+                let ptsB = (Number(b.pg) || 0) * 3 + (Number(b.pe) || 0) * 1;
+                if (ptsB !== ptsA) return ptsB - ptsA;
+                return ((Number(b.gf)||0)-(Number(b.gc)||0)) - ((Number(a.gf)||0)-(Number(a.gc)||0));
+            });
+            
+            sortedTeams.forEach((t, index) => {
+                let gf = Number(t.gf) || 0; let gc = Number(t.gc) || 0; let dg = gf - gc;
+                clasBody.innerHTML += `<tr>
                     <td><span class="clas-badge">${index + 1}</span></td>
                     <td><img class="clas-logo" src="${t.logo || 'https://via.placeholder.com/45'}"><strong>${t.name}</strong></td>
-                    <td>${t.pj || 0}</td>
-                    <td>${t.pg || 0}</td>
-                    <td>${t.pe || 0}</td>
-                    <td>${t.pp || 0}</td>
-                    <td>${gf}</td>
-                    <td>${gc}</td>
-                    <td style="font-weight:bold; color:${dg > 0 ? '#2ecc71' : dg < 0 ? '#e74c3c' : '#aaa'}">${dgText}</td>
-                    <td style="color:var(--accent); font-weight:bold; font-size:16px;">${ptsCalculados}</td>
-                </tr>
-            `;
-        });
+                    <td>${t.pj || 0}</td><td>${t.pg || 0}</td><td>${t.pe || 0}</td><td>${t.pp || 0}</td><td>${gf}</td><td>${gc}</td>
+                    <td style="font-weight:bold; color:${dg > 0 ? '#2ecc71' : dg < 0 ? '#e74c3c' : '#aaa'}">${dg > 0 ? '+'+dg : dg}</td>
+                    <td style="color:var(--accent); font-weight:bold; font-size:16px;">${(Number(t.pg)||0)*3+(Number(t.pe)||0)}</td>
+                </tr>`;
+            });
+        }
 
+        // CARTAS FC Y SELECCIÓN DE JUGADOR ORIGINAL COMPLETAMENTE RESTAURADO
         const grid = document.getElementById('grid');
-        grid.innerHTML = '';
-        state.players.filter(p=>p.teamId==state.currT).forEach(p => {
-            const isPor = p.pos.toUpperCase() === 'POR';
-            grid.innerHTML += `
-                <div class="fc-card" onclick="selectP(${p.id})">
+        if(grid) {
+            grid.innerHTML = '';
+            state.players.filter(p=>p.teamId==state.currT).forEach(p => {
+                const isPor = p.pos.toUpperCase() === 'POR';
+                grid.innerHTML += `<div class="fc-card" onclick="selectP(${p.id})">
                     <div class="rating-box"><div class="rating-val">${p.rat}</div><div class="pos-val">${p.pos}</div></div>
-                    <div class="price-tag">${p.val}</div>
-                    <div class="match-media-tag">⭐ ${p.media || '-'}</div>
-                    
+                    <div class="price-tag">${p.val}</div><div class="match-media-tag">⭐ ${p.media || '-'}</div>
                     <img src="${p.img}" class="player-img" onerror="this.style.opacity='0'" onload="this.style.opacity='1'">
                     <div class="card-info">
                         <p class="name">${p.name}</p>
-                        <div class="mini-stats">
-                            <span>PJ: ${p.pj}</span> | <span>${isPor?'PI':'G'}: ${p.g}</span> ${!isPor ? `| <span>A: ${p.a}</span>` : ''}
-                        </div>
-                        <div class="discipline">
-                            <span style="color:var(--yellow)">🟨 ${p.ama}</span>
-                            <span style="color:var(--red)">🟥 ${p.roj}</span>
-                        </div>
+                        <div class="mini-stats"><span>PJ: ${p.pj}</span> | <span>${isPor?'PI':'G'}: ${p.g}</span> ${!isPor ? `| <span>A: ${p.a}</span>` : ''}</div>
+                        <div class="discipline"><span style="color:var(--yellow)">🟨 ${p.ama}</span><span style="color:var(--red)">🟥 ${p.roj}</span></div>
                     </div>
                 </div>`;
-        });
+            });
+        }
 
+        // GRUPOS LIBERTADORES
         const liberGroupsContainer = document.getElementById('liber-groups-container');
         if (liberGroupsContainer) {
             liberGroupsContainer.innerHTML = '';
             state.liberGroups.forEach(g => {
-                let tablaHtml = `<thead>
-                    <tr><th>Pos</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th style="color:var(--accent)">Pts</th></tr>
-                </thead><tbody>`;
+                let tablaHtml = `<thead><tr><th>Pos</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th style="color:var(--accent)">Pts</th></tr></thead><tbody>`;
                 g.teams_data.forEach((t, idx) => {
-                    let claseColor = idx < 2 ? 'row-gold' : 'row-grey';
-                    tablaHtml += `<tr class="${claseColor}">
-                        <td><strong>${idx+1}º</strong></td>
-                        <td style="font-weight:bold;">${t.name}</td>
+                    tablaHtml += `<tr class="${idx < 2 ? 'row-gold' : 'row-grey'}">
+                        <td><strong>${idx+1}º</strong></td><td style="font-weight:bold;">${t.name}</td>
                         <td>${t.pj || 0}</td><td>${t.pg || 0}</td><td>${t.pe || 0}</td><td>${t.pp || 0}</td><td>${t.gf || 0}</td><td>${t.gc || 0}</td><td>${t.dg >= 0 ? '+' + t.dg : t.dg}</td>
                         <td style="font-weight:bold; color:var(--accent)">${t.pts || 0}</td>
                     </tr>`;
@@ -751,9 +931,8 @@
                     </div>`;
                 });
 
-                let delBtn = state.isAdmin ? `<button onclick="deleteSingleGroup(${g.id})" style="background:var(--red); border:none; border-radius:4px; color:#fff; cursor:pointer; font-weight:bold; padding:2px 6px;">×</button>` : '';
                 liberGroupsContainer.innerHTML += `<div class="group-box">
-                    <div class="group-header"><h3>${g.name}</h3>${delBtn}</div>
+                    <div class="group-header"><h3>${g.name}</h3>${state.isAdmin ? `<button onclick="deleteSingleGroup(${g.id})" style="background:var(--red); border:none; border-radius:4px; color:#fff; cursor:pointer; font-weight:bold; padding:2px 6px;">×</button>` : ''}</div>
                     <table class="clas-table">${tablaHtml}</table>
                     <div class="matches-list">${partidosHtml}</div>
                 </div>`;
@@ -770,8 +949,7 @@
             let p = state.players.find(x=>x.id==state.currP);
             p[id.replace('in-', '')] = e.target.value;
             if(id === 'in-pos') updateLabels(e.target.value);
-            await syncPlayer(p);
-            render();
+            await syncPlayer(p); render();
         };
     });
 
@@ -779,15 +957,10 @@
         document.getElementById(id).oninput = async e => {
             if(!state.isAdmin || !state.currT) return;
             let t = state.teams.find(x=>x.id==state.currT);
-            let field = id.replace('in-t', '');
-            t[field] = e.target.value;
-            
-            let calcPts = (Number(t.pg) || 0) * 3 + (Number(t.pe) || 0) * 1;
-            t.pts = calcPts;
-            document.getElementById('in-tpts').value = calcPts;
-
-            await syncTeam(t);
-            render();
+            t[id.replace('in-t', '')] = e.target.value;
+            t.pts = (Number(t.pg) || 0) * 3 + (Number(t.pe) || 0) * 1;
+            document.getElementById('in-tpts').value = t.pts;
+            await syncTeam(t); render();
         };
     });
 
