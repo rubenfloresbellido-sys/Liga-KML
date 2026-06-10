@@ -148,9 +148,9 @@
                         <div><label>GRL (Carta)</label><input type="number" id="in-rat"></div>
                         <div><label>Posición</label><input type="text" id="in-pos"></div>
                         <div><label>Partidos</label><input type="number" id="in-pj"></div>
-                        <div id="box-goles"><label>Goles</label><input type="number" id="in-g"></div>
-                        <div id="box-asist"><label>Asistencias</label><input type="number" id="in-a"></div>
-                        <div id="box-pi"><label>P. Imbatidas (P.I)</label><input type="number" id="in-pi"></div>
+                        <div><label>Goles</label><input type="number" id="in-g"></div>
+                        <div><label>Asistencias</label><input type="number" id="in-a"></div>
+                        <div><label style="color:#2ecc71">Porterías Imbatidas (P.I)</label><input type="number" id="in-pi"></div>
                         <div><label style="color:var(--yellow)">Amarillas 🟨</label><input type="number" id="in-ama"></div>
                         <div><label style="color:var(--red)">Rojas 🟥</label><input type="number" id="in-roj"></div>
                         <div style="grid-column: span 2"><label style="color:var(--accent)">Nota Media ⭐</label><input type="text" id="in-media" placeholder="Ej: 7.8"></div>
@@ -600,9 +600,9 @@
         overlay.style.display = 'flex';
 
         for (let i = 0; i < state.liberGroups.length; i++) {
-            let group = state.liberGroups[i]; group.teams_data = [];
+            let grupo = state.liberGroups[i]; grupo.teams_data = [];
             for (let j = 0; j < 3; j++) {
-                targetBox.innerText = `Asignando a: ${group.name} - Plaza ${j+1}`; winBox.classList.remove('glow');
+                targetBox.innerText = `Asignando a: ${grupo.name} - Plaza ${j+1}`; winBox.classList.remove('glow');
                 let promesasRuleta = new Promise((resolve) => {
                     let giros = 0;
                     let intervaloRuleta = setInterval(() => {
@@ -615,11 +615,11 @@
                 let equipoElegidoReal = listaMezclada.pop(); let objetoEquipoReal = state.teams.find(x => x.name === equipoElegidoReal);
                 imgRuleta.src = objetoEquipoReal?.logo || 'https://via.placeholder.com/110';
                 txtRuleta.innerText = equipoElegidoReal; winBox.classList.add('glow');
-                group.teams_data.push({ name: equipoElegidoReal, pj:0, pg:0, pe:0, pp:0, gf:0, gc:0, dg:0, pts:0 });
+                grupo.teams_data.push({ name: equipoElegidoReal, pj:0, pg:0, pe:0, pp:0, gf:0, gc:0, dg:0, pts:0 });
                 await new Promise(r => setTimeout(r, 1200));
             }
-            let n = group.teams_data;
-            group.matches = [
+            let n = grupo.teams_data;
+            grupo.matches = [
                 { local: n[0].name, visitante: n[1].name, golesL: '', golesV: '' },
                 { local: n[1].name, visitante: n[2].name, golesL: '', golesV: '' },
                 { local: n[2].name, visitante: n[0].name, golesL: '', golesV: '' },
@@ -627,7 +627,7 @@
                 { local: n[2].name, visitante: n[1].name, golesL: '', golesV: '' },
                 { local: n[0].name, visitante: n[2].name, golesL: '', golesV: '' }
             ];
-            await syncLiberGroup(group);
+            await syncLiberGroup(grupo);
         }
         overlay.style.display = 'none'; alert("¡Sorteo guardado con éxito!"); render();
     }
@@ -757,8 +757,13 @@
                 <img src="${p.img}" class="player-img" onerror="this.style.opacity='0'" onload="this.style.opacity='1'">
                 <div class="card-info">
                     <p class="name">${p.name}</p>
-                    <div class="mini-stats"><span>PJ: ${p.pj}</span> | <span>G: ${p.g}</span> | <span>A: ${p.a}</span> | <span>PI: ${p.pi || 0}</span></div>
-                    <div class="discipline"><span style="color:var(--yellow)">🟨 ${p.ama}</span><span style="color:var(--red)">🟥 ${p.roj}</span></div>
+                    <div class="mini-stats">
+                        <span>PJ: ${p.pj || 0}</span> | 
+                        <span>G: ${p.g || 0}</span> | 
+                        <span>A: ${p.a || 0}</span> | 
+                        <span style="color:#2ecc71">PI: ${p.pi || 0}</span>
+                    </div>
+                    <div class="discipline"><span style="color:var(--yellow)">🟨 ${p.ama || 0}</span><span style="color:var(--red)">🟥 ${p.roj || 0}</span></div>
                 </div></div>`;
         });
 
@@ -797,17 +802,27 @@
         updatePlayoffsDinamicos();
     }
 
+    // Cambiado críticamente a onchange para asegurar el guardado correcto de números en Supabase
     ['in-name','in-val','in-rat','in-pos','in-pj','in-g','in-a','in-pi','in-ama','in-roj','in-media'].forEach(id => {
-        document.getElementById(id).oninput = async e => {
+        document.getElementById(id).onchange = async e => {
             if(!state.currP || !state.isAdmin) return;
             let p = state.players.find(x=>x.id==state.currP);
-            p[id.replace('in-', '')] = e.target.value;
-            await syncPlayer(p); render();
+            let prop = id.replace('in-', '');
+            
+            let inputsNumericos = ['rat', 'pj', 'g', 'a', 'pi', 'ama', 'roj'];
+            if (inputsNumericos.includes(prop)) {
+                p[prop] = e.target.value !== '' ? parseInt(e.target.value, 10) : 0;
+            } else {
+                p[prop] = e.target.value;
+            }
+            
+            await syncPlayer(p); 
+            render();
         };
     });
 
     ['in-tname', 'in-tpj', 'in-tpg', 'in-tpe', 'in-tpp', 'in-tgf', 'in-tgc'].forEach(id => {
-        document.getElementById(id).oninput = async e => {
+        document.getElementById(id).onchange = async e => {
             if(!state.isAdmin || !state.currT) return;
             let t = state.teams.find(x=>x.id==state.currT);
             let field = id.replace('in-t', ''); t[field] = e.target.value;
