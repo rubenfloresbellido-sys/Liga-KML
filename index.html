@@ -150,9 +150,10 @@
                         <div><label>Partidos</label><input type="number" id="in-pj"></div>
                         <div id="box-goles"><label>Goles</label><input type="number" id="in-g"></div>
                         <div id="box-asist"><label>Asistencias</label><input type="number" id="in-a"></div>
+                        <div id="box-pi"><label>P. Imbatidas (P.I)</label><input type="number" id="in-pi"></div>
                         <div><label style="color:var(--yellow)">Amarillas 🟨</label><input type="number" id="in-ama"></div>
                         <div><label style="color:var(--red)">Rojas 🟥</label><input type="number" id="in-roj"></div>
-                        <div><label style="color:var(--accent)">Nota Media ⭐</label><input type="text" id="in-media" placeholder="Ej: 7.8"></div>
+                        <div style="grid-column: span 2"><label style="color:var(--accent)">Nota Media ⭐</label><input type="text" id="in-media" placeholder="Ej: 7.8"></div>
                     </div>
                     <button class="btn" style="background:var(--red); color:white" onclick="delPlayer()">Eliminar Jugador</button>
                 </div>
@@ -512,7 +513,7 @@
     }
 
     async function addPlayer() {
-        let p = { id: Date.now(), teamId: state.currT, name: 'NUEVO', rat: 85, pos: 'DC', val: '0', pj: 0, g: 0, a: 0, ama: 0, roj: 0, img: '', media: '-' };
+        let p = { id: Date.now(), teamId: state.currT, name: 'NUEVO', rat: 85, pos: 'DC', val: '0', pj: 0, g: 0, a: 0, pi: 0, ama: 0, roj: 0, img: '', media: '-' };
         if(state.isAdmin) {
             let { data } = await _supabase.from('players').upsert(p).select();
             if(data && data[0]) p = data[0];
@@ -527,10 +528,10 @@
         document.getElementById('ed-title').innerText = "Editando Jugador";
         document.getElementById('form-player').style.display = 'block';
         document.getElementById('form-team').style.display = 'none';
-        ['name','val','rat','pos','pj','g','a','ama','roj','media'].forEach(f => {
+        ['name','val','rat','pos','pj','g','a','pi','ama','roj','media'].forEach(f => {
             document.getElementById('in-'+f).value = p[f] !== undefined ? p[f] : '';
         });
-        updateLabels(p.pos); render();
+        render();
     }
 
     function selectT(id) {
@@ -550,12 +551,6 @@
         let calcPts = (Number(t.pg) || 0) * 3 + (Number(t.pe) || 0) * 1;
         document.getElementById('in-tpts').value = calcPts;
         render();
-    }
-
-    function updateLabels(pos) {
-        const isPor = pos.toUpperCase() === 'POR';
-        document.querySelector('#box-goles label').innerText = isPor ? 'P. Imbatidas' : 'Goles';
-        document.getElementById('box-asist').style.display = isPor ? 'none' : 'block';
     }
 
     async function delPlayer() {
@@ -605,9 +600,9 @@
         overlay.style.display = 'flex';
 
         for (let i = 0; i < state.liberGroups.length; i++) {
-            let grupo = state.liberGroups[i]; grupo.teams_data = [];
+            let group = state.liberGroups[i]; group.teams_data = [];
             for (let j = 0; j < 3; j++) {
-                targetBox.innerText = `Asignando a: ${grupo.name} - Plaza ${j+1}`; winBox.classList.remove('glow');
+                targetBox.innerText = `Asignando a: ${group.name} - Plaza ${j+1}`; winBox.classList.remove('glow');
                 let promesasRuleta = new Promise((resolve) => {
                     let giros = 0;
                     let intervaloRuleta = setInterval(() => {
@@ -620,11 +615,11 @@
                 let equipoElegidoReal = listaMezclada.pop(); let objetoEquipoReal = state.teams.find(x => x.name === equipoElegidoReal);
                 imgRuleta.src = objetoEquipoReal?.logo || 'https://via.placeholder.com/110';
                 txtRuleta.innerText = equipoElegidoReal; winBox.classList.add('glow');
-                grupo.teams_data.push({ name: equipoElegidoReal, pj:0, pg:0, pe:0, pp:0, gf:0, gc:0, dg:0, pts:0 });
+                group.teams_data.push({ name: equipoElegidoReal, pj:0, pg:0, pe:0, pp:0, gf:0, gc:0, dg:0, pts:0 });
                 await new Promise(r => setTimeout(r, 1200));
             }
-            let n = grupo.teams_data;
-            grupo.matches = [
+            let n = group.teams_data;
+            group.matches = [
                 { local: n[0].name, visitante: n[1].name, golesL: '', golesV: '' },
                 { local: n[1].name, visitante: n[2].name, golesL: '', golesV: '' },
                 { local: n[2].name, visitante: n[0].name, golesL: '', golesV: '' },
@@ -632,7 +627,7 @@
                 { local: n[2].name, visitante: n[1].name, golesL: '', golesV: '' },
                 { local: n[0].name, visitante: n[2].name, golesL: '', golesV: '' }
             ];
-            await syncLiberGroup(grupo);
+            await syncLiberGroup(group);
         }
         overlay.style.display = 'none'; alert("¡Sorteo guardado con éxito!"); render();
     }
@@ -671,7 +666,6 @@
         render();
     }
 
-    // FUNCIÓN AUXILIAR DE AVANCE DE EQUIPOS POR IDA Y VUELTA (CONSERVA TU LÓGICA INTEGRA)
     function checkWinnerPlayoff(prefix) {
         let lIda = document.getElementById(`${prefix}-l-ida`)?.value;
         let lVta = document.getElementById(`${prefix}-l-vta`)?.value;
@@ -690,9 +684,7 @@
         return null;
     }
 
-    // ACTUALIZACIONES DINÁMICAS ACTUALIZADAS PARA CONTROLAR LAS NUEVAS RONDAS AÑADIDAS
     function updatePlayoffsDinamicos() {
-        // Avance de Cuartos de Final a Semifinales en la Libertadores
         let ganadorC1 = checkWinnerPlayoff('c1');
         let ganadorC2 = checkWinnerPlayoff('c2');
         let ganadorC3 = checkWinnerPlayoff('c3');
@@ -703,27 +695,23 @@
         if(document.getElementById('s2-local') && ganadorC3) document.getElementById('s2-local').innerText = ganadorC3;
         if(document.getElementById('s2-vis') && ganadorC4) document.getElementById('s2-vis').innerText = ganadorC4;
 
-        // Avance de Semifinal a Final en la Libertadores
         let ganadorS1 = checkWinnerPlayoff('s1');
         let ganadorS2 = checkWinnerPlayoff('s2');
 
         if(document.getElementById('f-local') && ganadorS1) document.getElementById('f-local').innerText = ganadorS1;
         if(document.getElementById('f-vis') && ganadorS2) document.getElementById('f-vis').innerText = ganadorS2;
 
-        // Proclamar Campeón Libertadores en el nuevo recuadro
         let campeonLibertadores = checkWinnerPlayoff('f');
         if(document.getElementById('campeon-libertadores-txt')) {
             document.getElementById('campeon-libertadores-txt').innerText = campeonLibertadores || "Por Definir";
         }
 
-        // --- AVANCE EN LA COPA DE PERDEDORES ---
         let ganadorP1 = checkWinnerPlayoff('p1');
         let ganadorP2 = checkWinnerPlayoff('p2');
 
         if(document.getElementById('pf-local') && ganadorP1) document.getElementById('pf-local').innerText = ganadorP1;
         if(document.getElementById('pf-vis') && ganadorP2) document.getElementById('pf-vis').innerText = ganadorP2;
 
-        // Proclamar Ganador Copa Perdedores en el nuevo recuadro
         let campeonPerdedores = checkWinnerPlayoff('pf');
         if(document.getElementById('campeon-perdedores-txt')) {
             document.getElementById('campeon-perdedores-txt').innerText = campeonPerdedores || "Por Definir";
@@ -763,14 +751,13 @@
 
         const grid = document.getElementById('grid'); grid.innerHTML = '';
         state.players.filter(p=>p.teamId==state.currT).forEach(p => {
-            const isPor = p.pos.toUpperCase() === 'POR';
             grid.innerHTML += `<div class="fc-card" onclick="selectP(${p.id})">
                 <div class="rating-box"><div class="rating-val">${p.rat}</div><div class="pos-val">${p.pos}</div></div>
                 <div class="price-tag">${p.val}</div><div class="match-media-tag">⭐ ${p.media || '-'}</div>
                 <img src="${p.img}" class="player-img" onerror="this.style.opacity='0'" onload="this.style.opacity='1'">
                 <div class="card-info">
                     <p class="name">${p.name}</p>
-                    <div class="mini-stats"><span>PJ: ${p.pj}</span> | <span>${isPor?'PI':'G'}: ${p.g}</span> ${!isPor ? `| <span>A: ${p.a}</span>` : ''}</div>
+                    <div class="mini-stats"><span>PJ: ${p.pj}</span> | <span>G: ${p.g}</span> | <span>A: ${p.a}</span> | <span>PI: ${p.pi || 0}</span></div>
                     <div class="discipline"><span style="color:var(--yellow)">🟨 ${p.ama}</span><span style="color:var(--red)">🟥 ${p.roj}</span></div>
                 </div></div>`;
         });
@@ -810,12 +797,11 @@
         updatePlayoffsDinamicos();
     }
 
-    ['in-name','in-val','in-rat','in-pos','in-pj','in-g','in-a','in-ama','in-roj','in-media'].forEach(id => {
+    ['in-name','in-val','in-rat','in-pos','in-pj','in-g','in-a','in-pi','in-ama','in-roj','in-media'].forEach(id => {
         document.getElementById(id).oninput = async e => {
             if(!state.currP || !state.isAdmin) return;
             let p = state.players.find(x=>x.id==state.currP);
             p[id.replace('in-', '')] = e.target.value;
-            if(id === 'in-pos') updateLabels(e.target.value);
             await syncPlayer(p); render();
         };
     });
