@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>FC 25 - Manager Tortugas Guerreras</title>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --gold: linear-gradient(135deg, #e2c044 0%, #fbdf7e 45%, #b8860b 100%); --dark: #0f0f0f; --accent: #fbdf7e; --red: #ff4d4d; --yellow: #f1c40f; --grey: #7f8c8d; --green: #2ecc71; --blue: #3498db; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--dark); color: white; margin: 0; overflow-x: hidden; }
@@ -187,6 +186,7 @@
                         <div style="grid-column: span 2"><label style="color:var(--accent)">Puntos (Automático 3xG + 1xE)</label><input type="number" id="in-tpts" disabled></div>
                     </div>
                 </div>
+                <button class="btn" style="background:var(--yellow); color:#000; margin-top:20px;" onclick="exportarDatos()">⬇️ Exportar datos (data.json)</button>
                 <button class="btn" style="background:#444; color:white; margin-top:20px;" onclick="logout()">Cerrar Sesión</button>
             </div>
         </div>
@@ -421,11 +421,92 @@
 </div>
 
 <script>
-    const supabaseUrl = 'https://tcelmbxtsolpijmccuah.supabase.co';
-    const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjZWxtYnh0c29scGlqbWNjdWFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NzMyMTIsImV4cCI6MjA5NDU0OTIxMn0.a7d9y-oejpsfftzlQDvzUg-MaSR9YdtD4awS-jb8Ij0';
-    const adminKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjZWxtYnh0c29scGlqbWNjdWFoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODk3MzIxMiwiZXhwIjoyMDk0NTQ5MjEyfQ.AQOipGujTRbRPXEkn6Rm5SI6kIp71xAID6hxOXV55h0';
+  // ===== Guardado sin servidor =====
+  const localDB = {
+      _get(table) {
+          try { return JSON.parse(localStorage.getItem('fc25_' + table)) || []; }
+          catch (e) { return []; }
+      },
+      _set(table, rows) {
+          try { localStorage.setItem('fc25_' + table, JSON.stringify(rows)); }
+          catch (e) { alert('No se pudo guardar (¿demasiadas imágenes?): ' + e.message); }
+      },
+      from(table) {
+          const db = this;
+          const guardar = (row) => {
+              const rows = db._get(table);
+              const i = rows.findIndex(r => r.id == row.id);
+              if (i >= 0) rows[i] = row; else rows.push(row);
+              db._set(table, rows);
+              const result = { data: [row], error: null };
+              result.select = () => Promise.resolve(result);
+              return result;
+          };
+          return {
+              select: () => Promise.resolve({ data: db._get(table), error: null }),
+              upsert: guardar,
+              insert: guardar,
+              delete: () => ({
+                  eq: (col, val) => {
+                      db._set(table, db._get(table).filter(r => r[col] != val));
+                      return Promise.resolve({ error: null });
+                  },
+                  neq: (col, val) => {
+                      db._set(table, db._get(table).filter(r => r[col] == val));
+                      return Promise.resolve({ error: null });
+                  }
+              })
+          };
+      }
+  };
+  let _supabase = localDB; // así el resto de tu código no hay que tocarlo
 
-    let _supabase = supabase.createClient(supabaseUrl, anonKey);
+  function loadLocal() {
+      state.teams = localDB._get('teams');
+      state.players = localDB._get('players');
+      state.liberGroups = localDB._get('liber_groups').sort((a,b) => a.name.localeCompare(b.name));
+      try { state.playoffs = JSON.parse(localStorage.getItem('fc25_playoffs')) || {}; }
+      catch (e) { state.playoffs = {}; }
+  }
+
+  function savePlayoffs() {
+      try { localStorage.setItem('fc25_playoffs', JSON.stringify(state.playoffs)); } catch (e) {}
+  }
+
+  async function cargarDatosPublicos() {
+      try {
+          const resp = await fetch('data.json?v=' + Date.now(), { cache: 'no-store' });
+          if (!resp.ok) throw new Error('No hay data.json');
+          const d = await resp.json();
+          state.teams = d.teams || [];
+          state.players = d.players || [];
+          state.liberGroups = (d.liber_groups || []).sort((a,b) => a.name.localeCompare(b.name));
+          state.playoffs = d.playoffs || {};
+      } catch (e) {
+          console.log('Todavía no hay data.json');
+      }
+  }
+
+  function applyPlayoffValues() {
+      document.querySelectorAll('.matchup-scores input').forEach(inp => {
+          inp.value = (state.playoffs && state.playoffs[inp.id] !== undefined) ? state.playoffs[inp.id] : '';
+      });
+  }
+
+  function exportarDatos() {
+      const datos = {
+          teams: localDB._get('teams'),
+          players: localDB._get('players'),
+          liber_groups: localDB._get('liber_groups'),
+          playoffs: state.playoffs || {}
+      };
+      const blob = new Blob([JSON.stringify(datos)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'data.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+  }
     let state = { teams: [], players: [], liberGroups: [], currT: null, currP: null, isAdmin: false, activeTab: 'teams', activeSubLiber: 'grupos' };
 
     function switchTab(tab) {
@@ -451,28 +532,38 @@
         document.getElementById('liber-perdedores-section').style.display = sub === 'perdedores' ? 'block' : 'none';
     }
 
-    function checkPass() {
-        const pass = document.getElementById('pass-input').value;
-        if (pass === 'admin') {
-            state.isAdmin = true;
-            _supabase = supabase.createClient(supabaseUrl, adminKey);
-            document.body.classList.add('admin-mode');
-            document.getElementById('login-box').style.display = 'none';
-            alert("¡Sesión iniciada como Administrador!");
-            enablePlayoffInputs(true);
-            render();
-        } else { alert("Contraseña incorrecta"); }
-    }
+      function checkPass() {
+      const pass = document.getElementById('pass-input').value;
+      if (pass === 'admin') {
+          state.isAdmin = true;
+          // Si es la primera vez en este navegador, parte de lo que se está viendo (data.json)
+          if (localDB._get('teams').length === 0 && state.teams.length > 0) {
+              localDB._set('teams', state.teams);
+              localDB._set('players', state.players);
+              localDB._set('liber_groups', state.liberGroups);
+              savePlayoffs();
+          }
+          loadLocal();
+          document.body.classList.add('admin-mode');
+          document.getElementById('login-box').style.display = 'none';
+          alert("¡Sesión iniciada como Administrador!");
+          applyPlayoffValues();
+          enablePlayoffInputs(true);
+          render();
+          if (state.currT) selectT(state.currT);
+      } else { alert("Contraseña incorrecta"); }
+  }
 
-    function logout() {
-        state.isAdmin = false;
-        _supabase = supabase.createClient(supabaseUrl, anonKey);
-        document.body.classList.remove('admin-mode');
-        document.getElementById('login-box').style.display = 'block';
-        document.getElementById('pass-input').value = '';
-        enablePlayoffInputs(false);
-        render();
-    }
+  async function logout() {
+      state.isAdmin = false;
+      document.body.classList.remove('admin-mode');
+      document.getElementById('login-box').style.display = 'block';
+      document.getElementById('pass-input').value = '';
+      await cargarDatosPublicos();
+      applyPlayoffValues();
+      enablePlayoffInputs(false);
+      render();
+  }
 
     function enablePlayoffInputs(enabled) {
         document.querySelectorAll('.matchup-scores input').forEach(inp => {
@@ -481,34 +572,23 @@
     }
 
     async function loadData() {
-        try {
-            let { data: tData } = await _supabase.from('teams').select('*');
-            let { data: pData } = await _supabase.from('players').select('*');
-            let { data: lData } = await _supabase.from('liber_groups').select('*');
-            state.teams = tData || [];
-            state.players = pData || [];
-            state.liberGroups = lData || [];
-            state.liberGroups.sort((a,b) => a.name.localeCompare(b.name));
-        } catch(e) {
-            state.teams = []; state.players = []; state.liberGroups = [];
-        }
-        if(!state.currT && state.teams.length > 0) state.currT = state.teams[0].id;
-        render();
-        enablePlayoffInputs(state.isAdmin);
-        if(state.currT) selectT(state.currT);
+    state.playoffs = {};
+    await cargarDatosPublicos();
+    if (!state.currT && state.teams.length > 0) state.currT = state.teams[0].id;
+    applyPlayoffValues();
+    render();
+    enablePlayoffInputs(state.isAdmin);
+    if (state.currT) selectT(state.currT);
 
-        setInterval(async () => {
-            if(!state.isAdmin) {
-                let { data: lData } = await _supabase.from('liber_groups').select('*');
-                let { data: tData } = await _supabase.from('teams').select('*');
-                let { data: pData } = await _supabase.from('players').select('*');
-                if(lData) state.liberGroups = lData.sort((a,b) => a.name.localeCompare(b.name));
-                if(tData) state.teams = tData;
-                if(pData) state.players = pData;
-            }
-            updatePlayoffsDinamicos();
-        }, 4000);
-    }
+    // Los visitantes comprueban cada 30 segundos si hay datos nuevos
+    setInterval(async () => {
+        if (!state.isAdmin) {
+            await cargarDatosPublicos();
+            applyPlayoffValues();
+            render();
+        }
+    }, 30000);
+}
 
     async function syncTeam(t) { if(state.isAdmin) await _supabase.from('teams').upsert(t); }
     async function syncPlayer(p) { if(state.isAdmin) await _supabase.from('players').upsert(p); }
@@ -916,6 +996,15 @@
             render();
         };
     });
+
+    document.querySelectorAll('.matchup-scores input').forEach(inp => {
+    inp.addEventListener('change', () => {
+        if (!state.isAdmin) return;
+        state.playoffs[inp.id] = inp.value;
+        savePlayoffs();
+        updatePlayoffsDinamicos();
+    });
+});
 
     loadData();
 </script>
