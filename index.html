@@ -186,6 +186,7 @@
                         <div style="grid-column: span 2"><label style="color:var(--accent)">Puntos (Automático 3xG + 1xE)</label><input type="number" id="in-tpts" disabled></div>
                     </div>
                 </div>
+                <button class="btn" style="background:var(--blue); color:#fff; margin-top:20px;" onclick="recargarDesdeJson()">🔄 Recargar desde data.json</button>
                 <button class="btn" style="background:var(--yellow); color:#000; margin-top:20px;" onclick="exportarDatos()">⬇️ Exportar datos (data.json)</button>
                 <button class="btn" style="background:#444; color:white; margin-top:20px;" onclick="logout()">Cerrar Sesión</button>
             </div>
@@ -491,6 +492,29 @@
       document.querySelectorAll('.matchup-scores input').forEach(inp => {
           inp.value = (state.playoffs && state.playoffs[inp.id] !== undefined) ? state.playoffs[inp.id] : '';
       });
+  }
+
+    async function recargarDesdeJson() {
+      if (!confirm("Esto borra los datos guardados en este navegador y carga lo que hay en data.json. ¿Seguro?")) return;
+      try {
+          const resp = await fetch('data.json?v=' + Date.now(), { cache: 'no-store' });
+          if (!resp.ok) throw new Error('No se encontró data.json');
+          const d = await resp.json();
+          localDB._set('teams', d.teams || []);
+          localDB._set('players', d.players || []);
+          localDB._set('liber_groups', d.liber_groups || []);
+          state.playoffs = d.playoffs || {};
+          savePlayoffs();
+          loadLocal();
+          state.currT = state.teams.length ? state.teams[0].id : null;
+          state.currP = null;
+          applyPlayoffValues();
+          render();
+          if (state.currT) selectT(state.currT);
+          alert('Datos recargados desde data.json');
+      } catch (e) {
+          alert('No se pudo recargar: ' + e.message);
+      }
   }
 
   function exportarDatos() {
