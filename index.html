@@ -195,6 +195,18 @@ input:focus, select:focus { outline: none; border-color: var(--accent); box-shad
     body::before { letter-spacing: 2px; padding-top: 18px; }
     .tab-btn { font-size: 18px; padding: 5px 16px; }
 }
+
+/* ===== ESTADÍSTICAS (apartado nuevo, no modifica nada anterior) ===== */
+#view-stats { display: none; width: 100%; max-width: 1400px; margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
+.est-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 20px; }
+.est-grid .leaderboard-box { margin-bottom: 0; padding: 20px; }
+.est-title { margin: 0 0 12px 0; font-family: 'Bebas Neue'; font-size: 28px; letter-spacing: 1px; text-align: center; }
+.est-table td, .est-table th { padding-top: 9px; padding-bottom: 9px; }
+.est-table .est-val { font-weight: bold; font-size: 17px; text-align: center; }
+.est-table th.c, .est-table td.c { text-align: center; }
+.est-empty { text-align: center; color: #888; padding: 18px 0; font-size: 14px; }
+.est-top td:first-child .clas-badge { color: var(--accent); }
+.est-hint { text-align: center; color: #888; font-size: 12px; margin: 0 0 15px 0; }
     </style>
 </head>
 <body>
@@ -215,6 +227,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); box-shad
     <button class="tab-btn active" id="btn-tab-teams" onclick="switchTab('teams')">Equipos y Jugadores</button>
     <button class="tab-btn" id="btn-tab-clas" onclick="switchTab('clas')">Clasificación General</button>
     <button class="tab-btn" id="btn-tab-liber" onclick="switchTab('liber')">Libertadores</button>
+    <button class="tab-btn" id="btn-tab-stats" onclick="switchTab('stats')">Estadísticas</button>
 </div>
 
 <div class="navbar" id="nav">
@@ -329,6 +342,15 @@ input:focus, select:focus { outline: none; border-color: var(--accent); box-shad
                 </tbody>
             </table>
         </div>
+    </div>
+
+    <div id="view-stats">
+        <div class="sub-menu">
+            <button class="sub-btn active" id="est-btn-1" onclick="setEstDivision('1')">Primera División</button>
+            <button class="sub-btn" id="est-btn-2" onclick="setEstDivision('2')">Segunda División</button>
+        </div>
+        <p class="est-hint">Top 10 de cada categoría. En caso de empate, aparece primero quien menos partidos ha jugado.</p>
+        <div class="est-grid" id="est-container"></div>
     </div>
 
     <div id="view-libertadores">
@@ -1123,6 +1145,94 @@ input:focus, select:focus { outline: none; border-color: var(--accent); box-shad
 });
 
     loadData();
+</script>
+<script>
+// ===== ESTADÍSTICAS: apartado añadido, solo LEE los datos existentes (state.players / state.teams) =====
+(function () {
+    let estDiv = '1';
+
+    const CATEGORIAS = [
+        { key: 'g',   titulo: '⚽ Máximos Goleadores',   col: 'G' },
+        { key: 'a',   titulo: '🎯 Máximos Asistentes',   col: 'A' },
+        { key: 'pi',  titulo: '🧤 Porterías Imbatidas',  col: 'P.I', soloPorteros: true },
+        { key: 'ama', titulo: '🟨 Más Amarillas',        col: '🟨' },
+        { key: 'roj', titulo: '🟥 Más Rojas',            col: '🟥' }
+    ];
+
+    const esc = s => String(s === undefined || s === null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const num = v => Number(v) || 0;
+    const esPortero = p => String(p.pos || '').trim().toUpperCase() === 'POR';
+
+    // Top 10 de una categoría para una división (empate -> menos partidos jugados primero)
+    function calcularTop(players, teams, division, cat) {
+        const equipos = {};
+        teams.forEach(t => { equipos[String(t.id)] = t; });
+        return players
+            .map(p => ({ p: p, t: equipos[String(p.teamId)] }))
+            .filter(x => x.t && String(x.t.division || '1') === division)
+            .filter(x => !cat.soloPorteros || esPortero(x.p))
+            .filter(x => num(x.p[cat.key]) > 0)
+            .sort((a, b) =>
+                (num(b.p[cat.key]) - num(a.p[cat.key])) ||
+                (num(a.p.pj) - num(b.p.pj)) ||
+                String(a.p.name || '').localeCompare(String(b.p.name || '')))
+            .slice(0, 10);
+    }
+
+    function renderStats() {
+        const cont = document.getElementById('est-container');
+        if (!cont) return;
+        const color = estDiv === '1' ? 'var(--accent)' : 'var(--yellow)';
+        let html = '';
+        CATEGORIAS.forEach(cat => {
+            const top = calcularTop(state.players, state.teams, estDiv, cat);
+            let filas = '';
+            top.forEach((x, i) => {
+                filas += `<tr class="${i < 3 ? 'est-top' : ''}">
+                    <td><span class="clas-badge">${i + 1}</span></td>
+                    <td><strong>${esc(x.p.name)}</strong></td>
+                    <td><img class="clas-logo" src="${esc(x.t.logo || 'https://via.placeholder.com/45')}">${esc(x.t.name)}</td>
+                    <td class="c">${num(x.p.pj)}</td>
+                    <td class="est-val" style="color:${color}">${num(x.p[cat.key])}</td>
+                </tr>`;
+            });
+            if (!filas) filas = `<tr><td colspan="5" class="est-empty">Todavía no hay datos</td></tr>`;
+            html += `<div class="leaderboard-box">
+                <h3 class="est-title" style="color:${color}">${cat.titulo}</h3>
+                <table class="clas-table est-table">
+                    <thead><tr><th>#</th><th>Jugador</th><th>Equipo</th><th class="c">PJ</th><th class="c" style="color:${color}">${cat.col}</th></tr></thead>
+                    <tbody>${filas}</tbody>
+                </table>
+            </div>`;
+        });
+        cont.innerHTML = html;
+    }
+
+    window.setEstDivision = function (d) {
+        estDiv = d;
+        document.getElementById('est-btn-1').classList.toggle('active', d === '1');
+        document.getElementById('est-btn-2').classList.toggle('active', d === '2');
+        renderStats();
+    };
+
+    // Se "engancha" a las funciones existentes sin modificarlas
+    const switchTabOriginal = window.switchTab;
+    window.switchTab = function (tab) {
+        switchTabOriginal(tab);
+        document.getElementById('btn-tab-stats').classList.toggle('active', tab === 'stats');
+        document.getElementById('view-stats').style.display = tab === 'stats' ? 'block' : 'none';
+        if (tab === 'stats') renderStats();
+    };
+
+    const renderOriginal = window.render;
+    window.render = function () {
+        renderOriginal();
+        if (state.activeTab === 'stats') renderStats();  // se actualiza solo con cada cambio de datos
+    };
+
+    window.__calcularTopEstadisticas = calcularTop; // solo para pruebas
+})();
 </script>
 </body>
 </html>
