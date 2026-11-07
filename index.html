@@ -207,6 +207,24 @@ input:focus, select:focus { outline: none; border-color: var(--accent); box-shad
 .est-empty { text-align: center; color: #888; padding: 18px 0; font-size: 14px; }
 .est-top td:first-child .clas-badge { color: var(--accent); }
 .est-hint { text-align: center; color: #888; font-size: 12px; margin: 0 0 15px 0; }
+
+/* ===== ÚLTIMOS 5 PARTIDOS (apartado nuevo, no modifica nada anterior) ===== */
+.u5-wrap { display: flex; gap: 6px; justify-content: center; align-items: center; }
+.u5-dot { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; color: #fff; line-height: 1; box-sizing: border-box; }
+.u5-g { background: #2ecc71; }
+.u5-e { background: #7f8c8d; }
+.u5-p { background: #e74c3c; }
+.u5-v { background: transparent; border: 1px dashed rgba(255, 255, 255, 0.18); }
+.u5-last { box-shadow: 0 0 0 2px #161616, 0 0 0 4px currentColor; }
+.u5-g.u5-last { box-shadow: 0 0 0 2px #161616, 0 0 0 4px #2ecc71; }
+.u5-e.u5-last { box-shadow: 0 0 0 2px #161616, 0 0 0 4px #7f8c8d; }
+.u5-p.u5-last { box-shadow: 0 0 0 2px #161616, 0 0 0 4px #e74c3c; }
+.u5-th { text-align: center; }
+.u5-editor { margin-top: 15px; background: #111; padding: 12px; border-radius: 10px; border: 1px solid #333; }
+.u5-editor label { display: block; font-size: 12px; color: var(--accent); margin-bottom: 4px; }
+.u5-editor small { display: block; color: #888; font-size: 11px; margin-bottom: 8px; }
+.u5-editor-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.u5-editor-grid select { width: 100%; padding: 6px 2px; font-size: 16px; text-align: center; background: #222; color: #fff; border: 1px solid #444; border-radius: 6px; }
     </style>
 </head>
 <body>
@@ -1232,6 +1250,120 @@ input:focus, select:focus { outline: none; border-color: var(--accent); box-shad
     };
 
     window.__calcularTopEstadisticas = calcularTop; // solo para pruebas
+})();
+</script>
+<script>
+// ===== ÚLTIMOS 5 PARTIDOS: apartado añadido (se guarda en cada equipo como t.ult5) =====
+(function () {
+    // Cada posición: 'G' = ganó, 'E' = empató, 'P' = perdió, '' = vacío. Izquierda = más antiguo, derecha = más reciente.
+    const SIMBOLO = { G: '✓', E: '−', P: '✕' };
+    const CLASE   = { G: 'u5-g', E: 'u5-e', P: 'u5-p' };
+    const TITULO  = { G: 'Ganó', E: 'Empató', P: 'Perdió' };
+
+    function normalizar(arr) {
+        const r = Array.isArray(arr) ? arr.slice(0, 5) : [];
+        while (r.length < 5) r.push('');
+        return r.map(v => (v === 'G' || v === 'E' || v === 'P') ? v : '');
+    }
+
+    // Si hay menos de 5 resultados, los huecos salen vacíos a la derecha; el último resultado lleva un aro
+    function ult5Html(arr) {
+        const r = normalizar(arr);
+        let ultimo = -1;
+        r.forEach((v, i) => { if (v) ultimo = i; });
+        return '<div class="u5-wrap">' + r.map((v, i) =>
+            v ? `<span class="u5-dot ${CLASE[v]}${i === ultimo ? ' u5-last' : ''}" title="${TITULO[v]}">${SIMBOLO[v]}</span>`
+              : `<span class="u5-dot u5-v"></span>`).join('') + '</div>';
+    }
+
+    // Mismo orden que usa la clasificación existente (puntos y luego diferencia de goles)
+    function ordenar(teams, division) {
+        const pts = t => (Number(t.pg) || 0) * 3 + (Number(t.pe) || 0);
+        const dg  = t => (Number(t.gf) || 0) - (Number(t.gc) || 0);
+        return teams.filter(t => (t.division || '1') === division)
+                    .sort((a, b) => (pts(b) - pts(a)) || (dg(b) - dg(a)));
+    }
+
+    // Añade la cabecera "Últimos 5" y la celda de cada equipo en las dos tablas de Clasificación
+    function decorarClasificacion() {
+        document.querySelectorAll('#view-classification .clas-table thead tr').forEach(tr => {
+            if (!tr.querySelector('.u5-th')) {
+                const th = document.createElement('th');
+                th.className = 'u5-th';
+                th.textContent = 'Últimos 5';
+                tr.appendChild(th);
+            }
+        });
+        [['clas-body-1', '1'], ['clas-body-2', '2']].forEach(([id, div]) => {
+            const body = document.getElementById(id);
+            if (!body) return;
+            const equipos = ordenar(state.teams.slice(), div);
+            Array.from(body.rows).forEach((row, i) => {
+                const t = equipos[i];
+                const td = document.createElement('td');
+                td.className = 'u5-cell';
+                td.innerHTML = t ? ult5Html(t.ult5) : '';
+                row.appendChild(td);
+            });
+        });
+    }
+
+    // Editor SOLO para el admin: se mete dentro de "Ajustes Equipo" (que ya es solo visible para el admin)
+    function crearEditor() {
+        const form = document.getElementById('form-team');
+        if (!form || document.getElementById('u5-editor')) return;
+        const box = document.createElement('div');
+        box.id = 'u5-editor';
+        box.className = 'u5-editor';
+        let selects = '';
+        for (let i = 0; i < 5; i++) {
+            selects += `<select id="u5-sel-${i}" title="Partido ${i + 1}">
+                <option value="">·</option><option value="G">✅</option><option value="E">➖</option><option value="P">❌</option></select>`;
+        }
+        box.innerHTML = `<label>Últimos 5 partidos</label>
+            <small>De izquierda (más antiguo) a derecha (más reciente). ✅ ganó · ➖ empató · ❌ perdió</small>
+            <div class="u5-editor-grid">${selects}</div>`;
+        form.appendChild(box);
+        for (let i = 0; i < 5; i++) {
+            document.getElementById('u5-sel-' + i).onchange = async function () {
+                if (!state.isAdmin || !state.currT) return;
+                const t = state.teams.find(x => x.id == state.currT);
+                if (!t) return;
+                const nuevo = [];
+                for (let j = 0; j < 5; j++) nuevo.push(document.getElementById('u5-sel-' + j).value);
+                t.ult5 = nuevo;
+                await syncTeam(t);
+                render();
+            };
+        }
+    }
+
+    function rellenarEditor() {
+        if (!state.isAdmin) return;
+        const t = state.teams.find(x => x.id == state.currT);
+        const r = normalizar(t && t.ult5);
+        for (let i = 0; i < 5; i++) {
+            const s = document.getElementById('u5-sel-' + i);
+            if (s) s.value = r[i];
+        }
+    }
+
+    crearEditor();
+
+    // Se "engancha" a las funciones existentes sin modificarlas
+    const renderOriginal = window.render;
+    window.render = function () {
+        renderOriginal();
+        decorarClasificacion();   // se actualiza solo con cada cambio de datos
+    };
+
+    const selectTOriginal = window.selectT;
+    window.selectT = function (id) {
+        selectTOriginal(id);
+        rellenarEditor();
+    };
+
+    window.__u5 = { ult5Html: ult5Html, ordenar: ordenar, normalizar: normalizar }; // solo para pruebas
 })();
 </script>
 </body>
