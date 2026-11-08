@@ -2,8 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>La Liga KML - 26/27</title>
-    <link rel=icon href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMbdfEd0TOkCWqK9MYiEeJts5GlpRyGbj3Jo7UOF1WFg&s=10">
+    <title>FC 25 - Manager Tortugas Guerreras</title>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
     <style>
         :root { --gold: linear-gradient(135deg, #e2c044 0%, #fbdf7e 45%, #b8860b 100%); --dark: #0f0f0f; --accent: #fbdf7e; --red: #ff4d4d; --yellow: #f1c40f; --grey: #7f8c8d; --green: #2ecc71; --blue: #3498db; }
@@ -120,7 +119,7 @@ body {
 
 /* TÍTULO (creado solo con CSS) */
 body::before {
-    content: "LA LIGA KML - 26/27";
+    content: "FC 25  MANAGER TORTUGAS GUERRERAS";
     display: block;
     text-align: center;
     padding: 28px 16px 14px;
@@ -226,6 +225,17 @@ input:focus, select:focus { outline: none; border-color: var(--accent); box-shad
 .u5-editor small { display: block; color: #888; font-size: 11px; margin-bottom: 8px; }
 .u5-editor-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
 .u5-editor-grid select { width: 100%; padding: 6px 2px; font-size: 16px; text-align: center; background: #222; color: #fff; border: 1px solid #444; border-radius: 6px; }
+
+/* ===== MEDIA DEL EQUIPO Y CUADRADITO DE COLOR (apartado nuevo, no modifica nada anterior) ===== */
+.media-sq { display: inline-block; width: 11px; height: 11px; border-radius: 2px; margin-left: 5px; vertical-align: middle; border: 1px solid rgba(255, 255, 255, 0.6); box-sizing: border-box; }
+.media-rojo { background: #e74c3c; }
+.media-naranja { background: #f39c12; }
+.media-verde { background: #2ecc71; }
+.media-cian { background: #00e5ff; }
+.media-azul { background: #2a4bd7; }
+#team-avg { display: none; width: fit-content; max-width: 100%; margin: 0 auto 20px auto; padding: 10px 22px; background: #111; border: 1px solid var(--accent); border-radius: 12px; font-family: 'Rajdhani'; font-weight: 800; font-size: 20px; color: #fff; text-align: center; box-sizing: border-box; }
+#team-avg small { display: block; font-size: 12px; font-weight: 600; color: #888; }
+#team-avg .media-sq { width: 16px; height: 16px; margin-left: 8px; }
     </style>
 </head>
 <body>
@@ -1365,6 +1375,79 @@ input:focus, select:focus { outline: none; border-color: var(--accent); box-shad
     };
 
     window.__u5 = { ult5Html: ult5Html, ordenar: ordenar, normalizar: normalizar }; // solo para pruebas
+})();
+</script>
+<script>
+// ===== MEDIA DEL EQUIPO + CUADRADITO DE COLOR (solo LEE state.players / state.teams) =====
+(function () {
+    // "7,8" o "7.8" -> 7.8 ; "-" o vacío o 0 -> null (no cuenta)
+    function leerMedia(v) {
+        const n = parseFloat(String(v === undefined || v === null ? '' : v).replace(',', '.'));
+        return (isFinite(n) && n > 0) ? n : null;
+    }
+
+    // Colores (sobre 100): <50 rojo · 50 a <60 naranja · 60 a 70 verde · >70 a 90 cian · >90 azul oscuro
+    function claseColor(m) {
+        if (m < 50) return 'media-rojo';
+        if (m < 60) return 'media-naranja';
+        if (m <= 70) return 'media-verde';
+        if (m <= 90) return 'media-cian';
+        return 'media-azul';
+    }
+
+    function cuadrado(m) { return `<span class="media-sq ${claseColor(m)}"></span>`; }
+
+    function mediaEquipo(players, teamId) {
+        const notas = players.filter(p => p.teamId == teamId).map(p => leerMedia(p.media)).filter(n => n !== null);
+        if (!notas.length) return null;
+        const suma = notas.reduce((a, b) => a + b, 0);
+        return { media: Math.round((suma / notas.length) * 10) / 10, n: notas.length };
+    }
+
+    function crearBanner() {
+        const vista = document.getElementById('view-teams');
+        const grid = document.getElementById('grid');
+        if (!vista || !grid || document.getElementById('team-avg')) return;
+        const div = document.createElement('div');
+        div.id = 'team-avg';
+        vista.insertBefore(div, grid);
+    }
+
+    function actualizar() {
+        crearBanner();
+        const banner = document.getElementById('team-avg');
+        if (banner) {
+            const t = state.teams.find(x => x.id == state.currT);
+            if (!t) {
+                banner.style.display = 'none';
+            } else {
+                const r = mediaEquipo(state.players, t.id);
+                const esc = s => String(s === undefined || s === null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                banner.innerHTML = r
+                    ? `⭐ Nota media de ${esc(t.name)}: ${r.media.toFixed(1)}${cuadrado(r.media)}<small>Calculada con ${r.n} jugador${r.n === 1 ? '' : 'es'} con nota</small>`
+                    : `⭐ Nota media de ${esc(t.name)}: -<small>Aún no hay notas de jugadores</small>`;
+                banner.style.display = 'block';
+            }
+        }
+        // Cuadradito junto a la nota de cada carta de jugador
+        document.querySelectorAll('#grid .fc-card').forEach(card => {
+            const tag = card.querySelector('.match-media-tag');
+            if (!tag || tag.querySelector('.media-sq')) return;
+            const m = (card.getAttribute('onclick') || '').match(/selectP\((-?\d+)\)/);
+            const p = m && state.players.find(x => x.id == m[1]);
+            const nota = p && leerMedia(p.media);
+            if (nota !== null && nota !== undefined) tag.insertAdjacentHTML('beforeend', cuadrado(nota));
+        });
+    }
+
+    // Se "engancha" a render sin modificarlo
+    const renderOriginal = window.render;
+    window.render = function () {
+        renderOriginal();
+        actualizar();   // se actualiza solo cuando cambias una nota
+    };
+
+    window.__media = { leerMedia: leerMedia, claseColor: claseColor, mediaEquipo: mediaEquipo }; // solo para pruebas
 })();
 </script>
 </body>
